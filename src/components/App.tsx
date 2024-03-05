@@ -1,11 +1,11 @@
-import { Component, For } from "solid-js";
+import { Component, For, createSignal } from "solid-js";
 import appStore from "../stores";
-import { Cue } from "simple-subtitle-parser";
 
 const App: Component = () => {
   let audio: HTMLAudioElement;
   let audioFileInput: HTMLInputElement;
   let audioSubFileInput: HTMLInputElement;
+  let [recordingLine, setRecordingLine] = createSignal(-1);
 
   const onAudioFileSelected = (e: Event) => {
     if (audioFileInput.files != null) {
@@ -19,11 +19,8 @@ const App: Component = () => {
     }
   };
 
-  const playCue = async (cue: Cue) => {
-    let start = cue.startTime.totals.inSeconds;
-    let end = cue.endTime.totals.inSeconds;
-
-    audio.currentTime = start;
+  const playLine = async (line: AudioLine) => {
+    audio.currentTime = line.start;
 
     if (audio.paused) {
       await audio.play();
@@ -32,26 +29,76 @@ const App: Component = () => {
         if (audio.played) {
           audio.pause();
         }
-      }, (end - start) * 1000);
+      }, (line.end - line.start) * 1000);
     }
+  };
+
+  const playRecordedLine = async (line: AudioLine) => {
+    let recordAudio = new Audio(line.recordUrl);
+    recordAudio.play();
+  };
+
+  const recordLine = (line: AudioLine) => {
+    if (recordingLine() > 0) {
+      return;
+    }
+
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: true,
+      })
+      .then((media) => {
+        setRecordingLine(line.index);
+
+        let chunks = [] as Blob[];
+
+        if (appStore.store.optionPlayLineWhileRecording) {
+          playLine(line);
+        }
+
+        let recorder = new MediaRecorder(media);
+
+        recorder.start(0);
+        recorder.ondataavailable = (e) => {
+          chunks.push(e.data);
+        };
+
+        // TODO: better stop
+        setTimeout(() => {
+          setRecordingLine(-1);
+
+          recorder.stop();
+          media.getTracks().forEach((track) => track.stop());
+
+          appStore.updateAudioLineRecord(line, new Blob(chunks));
+        }, (line.end - line.start + 1) * 1000);
+      });
   };
 
   return (
     <>
       <h1>Speech Shadowing App</h1>
       <div>
-        <audio
-          ref={(ref) => (audio = ref)}
-          src={appStore.store.audioFileSrc}
-          controls
-          autoplay={false}
-        />
         <input
           ref={(ref) => (audioFileInput = ref)}
           type="file"
           style="display:none"
           accept=".mp3"
           onchange={onAudioFileSelected}
+        />
+        <input
+          ref={(ref) => (audioSubFileInput = ref)}
+          type="file"
+          style="display:none"
+          accept=".srt"
+          onchange={onAudioSubFileSelected}
+        />
+
+        <audio
+          ref={(ref) => (audio = ref)}
+          src={appStore.store.audioFileUrl}
+          controls
+          autoplay={false}
         />
         <button
           type="button"
@@ -61,15 +108,7 @@ const App: Component = () => {
         >
           Select an audio file
         </button>
-      </div>
-      <div>
-        <input
-          ref={(ref) => (audioSubFileInput = ref)}
-          type="file"
-          style="display:none"
-          accept=".srt"
-          onchange={onAudioSubFileSelected}
-        />
+
         <button
           type="button"
           onClick={() => {
@@ -78,12 +117,53 @@ const App: Component = () => {
         >
           Select an audio subtitle file
         </button>
+
+        <button type="button" onClick={() => appStore.useDemo("01")}>
+          Use the demo audio file
+        </button>
+      </div>
+
+      <div>
+        options:
+        <input
+          type="checkbox"
+          onClick={appStore.updateOptionPlayLineWhileRecording}
+          checked={appStore.store.optionPlayLineWhileRecording}
+        />
+        play which recording
       </div>
       <div>
-        <For each={appStore.store.audioSubCues}>
-          {(cue, i) => (
-            <div onClick={() => playCue(cue)}>
-              {cue.sequence + 1}. {cue.text}
+        <For each={appStore.store.audioLines}>
+          {(line) => (
+            <div>
+              {line.index + 1}. {line.text}
+              <button
+                type="button"
+                onClick={() => {
+                  playLine(line);
+                }}
+              >
+                play
+              </button>
+              <button
+                type="button"
+                style={{
+                  background: recordingLine() == line.index ? "red" : "",
+                }}
+                onClick={() => {
+                  recordLine(line);
+                }}
+              >
+                {recordingLine() == line.index ? "stop" : "record"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  playRecordedLine(line);
+                }}
+              >
+                play record
+              </button>
             </div>
           )}
         </For>
