@@ -1,4 +1,4 @@
-import { createStore } from "solid-js/store";
+import { createStore, produce } from "solid-js/store";
 import * as ssp from "simple-subtitle-parser";
 
 const [store, setStore] = createStore({
@@ -47,7 +47,7 @@ const appStore = {
 
     updateAudioLines(text, file.name);
   },
-  updateAudioLineRecord(line: AudioLine, record: Blob) {
+  updateAudioLineRecord(line: AudioLine, chunks: Blob[]) {
     if (line.recordUrl) {
       URL.revokeObjectURL(line.recordUrl);
     }
@@ -55,8 +55,10 @@ const appStore = {
     setStore(
       "audioLines",
       line.index,
-      "recordUrl",
-      URL.createObjectURL(record)
+      produce((line) => {
+        line.record = new Blob(chunks);
+        line.recordUrl = URL.createObjectURL(line.record);
+      })
     );
   },
   updateOptionPlayLineWhileRecording() {

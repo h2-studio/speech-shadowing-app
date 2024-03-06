@@ -16,6 +16,7 @@
     "vite-plugin-solid": "^2.8.2"
   },
   "dependencies": {
+    "crunker": "^2.4.0",
     "simple-subtitle-parser": "^2.0.0",
     "solid-js": "^1.8.11"
   }

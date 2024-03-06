@@ -9,5 +9,6 @@ interface AudioLine {
   start: number;
   end: number;
   text: string;
+  record: Blob;
   recordUrl: string;
 }
