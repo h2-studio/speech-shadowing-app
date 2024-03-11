@@ -1,10 +1,17 @@
-interface AppStore {
-  audioFileUrl: string;
-  audioLines: AudioLine[];
-  optionPlayLineWhileRecording: boolean;
+interface AppStoreOptions {
+  playLineWhileRecording: boolean;
+  playRate: number;
 }
 
-interface AudioLine {
+interface AppStore {
+  sourceFileUrl?: string;
+  subtitleFileUrl?: string;
+  lines: SubtitleLine[];
+  options: AppStoreOptions;
+  currentPlayingLine: number;
+}
+
+interface SubtitleLine {
   index: number;
   start: number;
   end: number;

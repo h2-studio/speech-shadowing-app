@@ -1,8 +1,9 @@
-import { For, JSXElement, Show, createSignal } from "solid-js";
+import { For, JSXElement, Show, createSignal, onMount } from "solid-js";
 import Crunker from "crunker";
-import appStore from "../stores";
 import Header from "./Header";
 import Button from "./Button";
+
+import service from "../service";
 
 export default function App(): JSXElement {
   let audioRef: HTMLAudioElement;
@@ -12,54 +13,30 @@ export default function App(): JSXElement {
 
   let recorder: MediaRecorder;
 
-  let [playingLine, setPlayingLine] = createSignal(-1);
   let [recordingLine, setRecordingLine] = createSignal(-1);
+
+  onMount(() => {
+    service.init(audioRef);
+  });
 
   const onAudioFileSelected = (e: Event) => {
     if (audioFileInputRef.files != null) {
-      appStore.updateAudioFile(audioFileInputRef.files[0]);
+      service.updateSourceFile(audioFileInputRef.files[0]);
     }
   };
 
   const onAudioSubFileSelected = (e: Event) => {
     if (audioSubFileInputRef.files != null) {
-      appStore.updateAudioSubFile(audioSubFileInputRef.files[0]);
+      service.updateSubtitleFile(audioSubFileInputRef.files[0]);
     }
   };
 
-  const playLine = async (line: AudioLine, changeVolume: boolean = false) => {
-    if (audioRef.paused) {
-      setPlayingLine(line.index);
-
-      let oldVolume = audioRef.volume;
-      audioRef.currentTime = line.start;
-
-      if (changeVolume) {
-        audioRef.volume = 0.1;
-      }
-
-      await audioRef.play();
-
-      setTimeout(() => {
-        setPlayingLine(-1);
-
-        if (audioRef.played) {
-          if (changeVolume) {
-            audioRef.volume = oldVolume;
-          }
-
-          audioRef.pause();
-        }
-      }, (line.end - line.start) * 1000);
-    }
-  };
-
-  const playRecordedLine = async (line: AudioLine) => {
+  const playRecordedLine = async (line: SubtitleLine) => {
     let recordAudio = new Audio(line.recordUrl);
     recordAudio.play();
   };
 
-  const recordLine = (line: AudioLine) => {
+  const recordLine = (line: SubtitleLine) => {
     if (recordingLine() > 0) {
       return;
     }
@@ -73,8 +50,8 @@ export default function App(): JSXElement {
 
         let chunks = [] as Blob[];
 
-        if (appStore.store.optionPlayLineWhileRecording) {
-          playLine(line, true);
+        if (service.store.options.playLineWhileRecording) {
+          service.playLine(line, true);
         }
 
         recorder = new MediaRecorder(stream);
@@ -85,7 +62,7 @@ export default function App(): JSXElement {
 
           if (recorder.state == "inactive") {
             setRecordingLine(-1);
-            appStore.updateAudioLineRecord(line, chunks);
+            service.updateAudioLineRecord(line, chunks);
             stream.getTracks().forEach((track) => track.stop());
           }
         };
@@ -105,7 +82,7 @@ export default function App(): JSXElement {
     let crunker = new Crunker();
     let audioBuffer: AudioBuffer | null = null;
 
-    for (let line of appStore.store.audioLines) {
+    for (let line of service.store.lines) {
       if (line.record) {
         let temp = await crunker.context.decodeAudioData(
           await line.record.arrayBuffer()
@@ -136,7 +113,7 @@ export default function App(): JSXElement {
           <audio
             class="w-full"
             ref={(ref) => (audioRef = ref)}
-            src={appStore.store.audioFileUrl}
+            src={service.store.sourceFileUrl}
             controls
             autoplay={false}
           />
@@ -159,7 +136,7 @@ export default function App(): JSXElement {
             Select an audio subtitle file
           </Button>
 
-          <Button onClick={() => appStore.useDemo("01")}>
+          <Button onClick={() => service.useDemo("01")}>
             Use the demo audio file
           </Button>
         </div>
@@ -169,8 +146,13 @@ export default function App(): JSXElement {
         options:
         <input
           type="checkbox"
-          onClick={appStore.updateOptionPlayLineWhileRecording}
-          checked={appStore.store.optionPlayLineWhileRecording}
+          onClick={() => {
+            service.updateOption(
+              "playLineWhileRecording",
+              !service.store.options.playLineWhileRecording
+            );
+          }}
+          checked={service.store.options.playLineWhileRecording}
         />
         play which recording
         <Button onClick={saveRecord}>save records</Button>
@@ -179,13 +161,19 @@ export default function App(): JSXElement {
       {/* TODO: sticky top */}
 
       <div class="py-4">
-        <For each={appStore.store.audioLines}>
+        <For each={service.store.lines}>
           {(line) => (
-            <div class={playingLine() == line.index ? "bg-blue-200" : ""}>
+            <div
+              class={
+                service.store.currentPlayingLine == line.index
+                  ? "bg-blue-200"
+                  : ""
+              }
+            >
               {line.index + 1}. {line.text}
               <Button
                 onClick={() => {
-                  playLine(line);
+                  service.playLine(line);
                 }}
               >
                 play
