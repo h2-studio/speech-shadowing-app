@@ -1,8 +1,10 @@
-import { Component, For, Show, createSignal } from "solid-js";
+import { For, JSXElement, Show, createSignal } from "solid-js";
 import Crunker from "crunker";
 import appStore from "../stores";
+import Header from "./Header";
+import Button from "./Button";
 
-const App: Component = () => {
+export default function App(): JSXElement {
   let audioRef: HTMLAudioElement;
   let audioFileInputRef: HTMLInputElement;
   let audioSubFileInputRef: HTMLInputElement;
@@ -10,6 +12,7 @@ const App: Component = () => {
 
   let recorder: MediaRecorder;
 
+  let [playingLine, setPlayingLine] = createSignal(-1);
   let [recordingLine, setRecordingLine] = createSignal(-1);
 
   const onAudioFileSelected = (e: Event) => {
@@ -24,14 +27,27 @@ const App: Component = () => {
     }
   };
 
-  const playLine = async (line: AudioLine) => {
-    audioRef.currentTime = line.start;
-
+  const playLine = async (line: AudioLine, changeVolume: boolean = false) => {
     if (audioRef.paused) {
+      setPlayingLine(line.index);
+
+      let oldVolume = audioRef.volume;
+      audioRef.currentTime = line.start;
+
+      if (changeVolume) {
+        audioRef.volume = 0.1;
+      }
+
       await audioRef.play();
 
       setTimeout(() => {
+        setPlayingLine(-1);
+
         if (audioRef.played) {
+          if (changeVolume) {
+            audioRef.volume = oldVolume;
+          }
+
           audioRef.pause();
         }
       }, (line.end - line.start) * 1000);
@@ -58,7 +74,7 @@ const App: Component = () => {
         let chunks = [] as Blob[];
 
         if (appStore.store.optionPlayLineWhileRecording) {
-          playLine(line);
+          playLine(line, true);
         }
 
         recorder = new MediaRecorder(stream);
@@ -114,38 +130,42 @@ const App: Component = () => {
 
   return (
     <>
-      <h1>Speech Shadowing App</h1>
-      <div>
-        <audio
-          ref={(ref) => (audioRef = ref)}
-          src={appStore.store.audioFileUrl}
-          controls
-          autoplay={false}
-        />
-        <button
-          type="button"
-          onClick={() => {
-            audioFileInputRef.click();
-          }}
-        >
-          Select an audio file
-        </button>
+      <Header />
+      <div class="grid grid-cols-3 py-4">
+        <div>
+          <audio
+            class="w-full"
+            ref={(ref) => (audioRef = ref)}
+            src={appStore.store.audioFileUrl}
+            controls
+            autoplay={false}
+          />
+        </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            audioSubFileInputRef.click();
-          }}
-        >
-          Select an audio subtitle file
-        </button>
+        <div class="col-span-2">
+          <Button
+            onClick={() => {
+              audioFileInputRef.click();
+            }}
+          >
+            Select an audio file
+          </Button>
 
-        <button type="button" onClick={() => appStore.useDemo("01")}>
-          Use the demo audio file
-        </button>
+          <Button
+            onClick={() => {
+              audioSubFileInputRef.click();
+            }}
+          >
+            Select an audio subtitle file
+          </Button>
+
+          <Button onClick={() => appStore.useDemo("01")}>
+            Use the demo audio file
+          </Button>
+        </div>
       </div>
 
-      <div>
+      <div class="py-4">
         options:
         <input
           type="checkbox"
@@ -153,50 +173,49 @@ const App: Component = () => {
           checked={appStore.store.optionPlayLineWhileRecording}
         />
         play which recording
-        <button onclick={saveRecord}>save records</button>
+        <Button onClick={saveRecord}>save records</Button>
       </div>
-      <div>
+
+      {/* TODO: sticky top */}
+
+      <div class="py-4">
         <For each={appStore.store.audioLines}>
           {(line) => (
-            <div>
+            <div class={playingLine() == line.index ? "bg-blue-200" : ""}>
               {line.index + 1}. {line.text}
-              <button
-                type="button"
+              <Button
                 onClick={() => {
                   playLine(line);
                 }}
               >
                 play
-              </button>
+              </Button>
               {recordingLine() == line.index ? (
-                <button
-                  type="button"
-                  style={{ background: "red" }}
+                <Button
+                  type="alert"
                   onClick={() => {
                     stopRecordLine();
                   }}
                 >
                   stop
-                </button>
+                </Button>
               ) : (
-                <button
-                  type="button"
+                <Button
                   onClick={() => {
                     recordLine(line);
                   }}
                 >
                   record
-                </button>
+                </Button>
               )}
               <Show when={line.recordUrl}>
-                <button
-                  type="button"
+                <Button
                   onClick={() => {
                     playRecordedLine(line);
                   }}
                 >
                   play record
-                </button>
+                </Button>
               </Show>
             </div>
           )}
@@ -219,6 +238,4 @@ const App: Component = () => {
       <a ref={(ref) => (downloadLinkRef = ref)} style="display:none" />
     </>
   );
-};
-
-export default App;
+}
