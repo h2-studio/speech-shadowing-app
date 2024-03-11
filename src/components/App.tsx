@@ -1,23 +1,12 @@
-import { For, JSXElement, Show, createSignal, onMount } from "solid-js";
-import Crunker from "crunker";
-import Header from "./Header";
+import { For, JSXElement, Show } from "solid-js";
 import Button from "./Button";
+import Header from "./Header";
 
 import service from "../service";
 
 export default function App(): JSXElement {
-  let audioRef: HTMLAudioElement;
   let audioFileInputRef: HTMLInputElement;
   let audioSubFileInputRef: HTMLInputElement;
-  let downloadLinkRef: HTMLAnchorElement;
-
-  let recorder: MediaRecorder;
-
-  let [recordingLine, setRecordingLine] = createSignal(-1);
-
-  onMount(() => {
-    service.init(audioRef);
-  });
 
   const onAudioFileSelected = (e: Event) => {
     if (audioFileInputRef.files != null) {
@@ -31,80 +20,6 @@ export default function App(): JSXElement {
     }
   };
 
-  const playRecordedLine = async (line: SubtitleLine) => {
-    let recordAudio = new Audio(line.recordUrl);
-    recordAudio.play();
-  };
-
-  const recordLine = (line: SubtitleLine) => {
-    if (recordingLine() > 0) {
-      return;
-    }
-
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: true,
-      })
-      .then((stream) => {
-        setRecordingLine(line.index);
-
-        let chunks = [] as Blob[];
-
-        if (service.store.options.playLineWhileRecording) {
-          service.playLine(line, true);
-        }
-
-        recorder = new MediaRecorder(stream);
-
-        recorder.start(0);
-        recorder.ondataavailable = (e) => {
-          chunks.push(e.data);
-
-          if (recorder.state == "inactive") {
-            setRecordingLine(-1);
-            service.updateAudioLineRecord(line, chunks);
-            stream.getTracks().forEach((track) => track.stop());
-          }
-        };
-
-        // TODO: better stop
-        setTimeout(() => {
-          recorder.stop();
-        }, (line.end - line.start + 1) * 1000);
-      });
-  };
-
-  const stopRecordLine = () => {
-    recorder?.stop();
-  };
-
-  const saveRecord = async () => {
-    let crunker = new Crunker();
-    let audioBuffer: AudioBuffer | null = null;
-
-    for (let line of service.store.lines) {
-      if (line.record) {
-        let temp = await crunker.context.decodeAudioData(
-          await line.record.arrayBuffer()
-        );
-
-        if (audioBuffer == null) {
-          audioBuffer = temp;
-        } else {
-          audioBuffer = crunker.concatAudio([audioBuffer, temp]);
-        }
-      }
-    }
-
-    if (audioBuffer && audioBuffer.length > 0) {
-      let exp = await crunker.export(audioBuffer, "audio/mpeg");
-      downloadLinkRef.href = exp.url;
-      downloadLinkRef.download = "output.mp3";
-
-      downloadLinkRef.click();
-    }
-  };
-
   return (
     <>
       <Header />
@@ -112,7 +27,7 @@ export default function App(): JSXElement {
         <div>
           <audio
             class="w-full"
-            ref={(ref) => (audioRef = ref)}
+            ref={service.setMediaRef}
             src={service.store.sourceFileUrl}
             controls
             autoplay={false}
@@ -155,7 +70,7 @@ export default function App(): JSXElement {
           checked={service.store.options.playLineWhileRecording}
         />
         play which recording
-        <Button onClick={saveRecord}>save records</Button>
+        <Button onClick={() => service.exportRecord()}>save records</Button>
       </div>
 
       {/* TODO: sticky top */}
@@ -178,11 +93,11 @@ export default function App(): JSXElement {
               >
                 play
               </Button>
-              {recordingLine() == line.index ? (
+              {service.store.currentRecordingLine == line.index ? (
                 <Button
                   type="alert"
                   onClick={() => {
-                    stopRecordLine();
+                    service.stopRecording();
                   }}
                 >
                   stop
@@ -190,16 +105,16 @@ export default function App(): JSXElement {
               ) : (
                 <Button
                   onClick={() => {
-                    recordLine(line);
+                    service.recordLine(line);
                   }}
                 >
                   record
                 </Button>
               )}
-              <Show when={line.recordUrl}>
+              <Show when={line.recordBlobUrl}>
                 <Button
                   onClick={() => {
-                    playRecordedLine(line);
+                    service.playLineRecord(line);
                   }}
                 >
                   play record
@@ -223,7 +138,6 @@ export default function App(): JSXElement {
         accept=".srt"
         onchange={onAudioSubFileSelected}
       />
-      <a ref={(ref) => (downloadLinkRef = ref)} style="display:none" />
     </>
   );
 }

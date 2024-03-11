@@ -9,6 +9,7 @@ interface AppStore {
   lines: SubtitleLine[];
   options: AppStoreOptions;
   currentPlayingLine: number;
+  currentRecordingLine: number;
 }
 
 interface SubtitleLine {
@@ -17,5 +18,5 @@ interface SubtitleLine {
   end: number;
   text: string;
   record: Blob;
-  recordUrl: string;
+  recordBlobUrl: string;
 }

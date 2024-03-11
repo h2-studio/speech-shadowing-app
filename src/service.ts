@@ -1,13 +1,39 @@
 import { SetStoreFunction, createStore, produce } from "solid-js/store";
 import * as ssp from "simple-subtitle-parser";
+import Crunker from "crunker";
 
 class AppService {
   private _mediaRef: HTMLMediaElement;
   private _store: AppStore;
   private _setStore: SetStoreFunction<AppStore>;
+  private _crucker: Crunker;
+  private _audio: HTMLAudioElement;
+  private _recorder: MediaRecorder;
 
   public get store() {
     return this._store;
+  }
+
+  constructor() {
+    // TODO: load options from localStorage
+
+    let stores = createStore({
+      sourceFileUrl: "",
+      subtitleFileUrl: "",
+      currentPlayingLine: -1,
+      currentRecordingLine: -1,
+      lines: [],
+      options: {
+        playLineWhileRecording: true,
+        playRate: 1,
+      },
+    } as AppStore);
+
+    this._store = stores[0];
+    this._setStore = stores[1];
+
+    this._crucker = new Crunker();
+    this._audio = new Audio();
   }
 
   private async updateLines(text: string, fileName: string) {
@@ -30,26 +56,24 @@ class AppService {
     this._setStore("lines", lines);
   }
 
-  constructor() {
-    // TODO: load options from localStorage
-    let stores = createStore({
-      sourceFileUrl: "",
-      subtitleFileUrl: "",
-      currentPlayingLine: -1,
-      lines: [],
-      options: {
-        playLineWhileRecording: true,
-        playRate: 1,
-      },
-    } as AppStore);
+  private async updateLineRecord(line: SubtitleLine, chunks: Blob[]) {
+    if (line.recordBlobUrl) {
+      URL.revokeObjectURL(line.recordBlobUrl);
+    }
 
-    this._store = stores[0];
-    this._setStore = stores[1];
+    this._setStore(
+      "lines",
+      line.index,
+      produce((line) => {
+        line.record = new Blob(chunks);
+        line.recordBlobUrl = URL.createObjectURL(line.record);
+      })
+    );
   }
 
-  public init(mediaRef: HTMLMediaElement) {
+  public setMediaRef = (mediaRef: HTMLMediaElement) => {
     this._mediaRef = mediaRef;
-  }
+  };
 
   public async useDemo(num: string) {
     this._setStore("sourceFileUrl", `/demos/${num}.mp3`);
@@ -69,21 +93,6 @@ class AppService {
     let text = await file.text();
 
     this.updateLines(text, file.name);
-  }
-
-  public async updateAudioLineRecord(line: SubtitleLine, chunks: Blob[]) {
-    if (line.recordUrl) {
-      URL.revokeObjectURL(line.recordUrl);
-    }
-
-    this._setStore(
-      "lines",
-      line.index,
-      produce((line) => {
-        line.record = new Blob(chunks);
-        line.recordUrl = URL.createObjectURL(line.record);
-      })
-    );
   }
 
   public async updateOption<O extends keyof AppStoreOptions>(
@@ -117,6 +126,88 @@ class AppService {
           this._mediaRef.pause();
         }
       }, (line.end - line.start) * 1000);
+    }
+  }
+
+  public async playLineRecord(line: SubtitleLine) {
+    if (!this._audio.paused) {
+      this._audio.pause();
+    }
+
+    this._audio.src = line.recordBlobUrl;
+
+    this._audio.play();
+  }
+
+  public recordLine(line: SubtitleLine) {
+    if (this._store.currentPlayingLine > 0) {
+      return;
+    }
+
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: true,
+      })
+      .then((stream) => {
+        this._setStore("currentRecordingLine", line.index);
+
+        let chunks = [] as Blob[];
+
+        if (this._store.options.playLineWhileRecording) {
+          this.playLine(line, true);
+        }
+
+        this._recorder = new MediaRecorder(stream);
+
+        this._recorder.start(0);
+        this._recorder.ondataavailable = (e) => {
+          chunks.push(e.data);
+
+          if (this._recorder.state == "inactive") {
+            this._setStore("currentRecordingLine", line.index);
+            this.updateLineRecord(line, chunks);
+            stream.getTracks().forEach((track) => track.stop());
+          }
+        };
+
+        // TODO: better stop
+        setTimeout(() => {
+          this._recorder.stop();
+        }, (line.end - line.start + 1) * 1000);
+      });
+  }
+
+  public stopRecording() {
+    this._recorder?.stop();
+  }
+
+  public async exportRecord() {
+    let audioBuffer: AudioBuffer | null = null;
+
+    for (let line of this._store.lines) {
+      if (line.record) {
+        // decode each record to array buffer
+        let temp = await this._crucker.context.decodeAudioData(
+          await line.record.arrayBuffer()
+        );
+
+        if (audioBuffer == null) {
+          audioBuffer = temp;
+        } else {
+          // concatenate each record by crunker
+          audioBuffer = this._crucker.concatAudio([audioBuffer, temp]);
+        }
+      }
+    }
+
+    if (audioBuffer && audioBuffer.length > 0) {
+      let exp = await this._crucker.export(audioBuffer, "audio/mpeg");
+      let ele = document.createElement("a");
+      ele.href = exp.url;
+
+      // TODO: better export name
+      ele.download = "speech-shadowing-record.mp3";
+      ele.click();
     }
   }
 }
