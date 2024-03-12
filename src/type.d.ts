@@ -4,8 +4,9 @@ interface AppStoreOptions {
 }
 
 interface AppStore {
-  sourceFileUrl?: string;
-  subtitleFileUrl?: string;
+  isReady: boolean;
+  isSourceVideo: boolean;
+  sourceUrl: string;
   lines: SubtitleLine[];
   options: AppStoreOptions;
   currentPlayingLine: number;

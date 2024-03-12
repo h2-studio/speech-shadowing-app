@@ -1,6 +1,9 @@
-import { SetStoreFunction, createStore, produce } from "solid-js/store";
-import * as ssp from "simple-subtitle-parser";
 import Crunker from "crunker";
+import * as ssp from "simple-subtitle-parser";
+import { Context, ParentProps, createContext, useContext } from "solid-js";
+import { SetStoreFunction, createStore, produce } from "solid-js/store";
+
+const AppServiceContext = createContext<AppService>() as Context<AppService>;
 
 class AppService {
   private _mediaRef: HTMLMediaElement;
@@ -18,8 +21,9 @@ class AppService {
     // TODO: load options from localStorage
 
     let stores = createStore({
-      sourceFileUrl: "",
-      subtitleFileUrl: "",
+      isReady: false,
+      isSourceVideo: false,
+      sourceUrl: "",
       currentPlayingLine: -1,
       currentRecordingLine: -1,
       lines: [],
@@ -36,14 +40,16 @@ class AppService {
     this._audio = new Audio();
   }
 
-  private async updateLines(text: string, fileName: string) {
+  private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
+    let res = await fetch(url);
+    let text = await res.text();
+
     // the library only support \n
     text = text.replaceAll("\r\n", "\n");
 
-    let ext = ssp.extractFormatFromFileName(fileName);
-    let cues = await ssp.parser(ext.format, text);
+    let cues = await ssp.parser("SRT" as ssp.Format, text);
 
-    let lines = cues.map(
+    return cues.map(
       (cue) =>
         ({
           index: cue.sequence,
@@ -52,8 +58,6 @@ class AppService {
           text: cue.text.join(" "),
         } as SubtitleLine)
     );
-
-    this._setStore("lines", lines);
   }
 
   private async updateLineRecord(line: SubtitleLine, chunks: Blob[]) {
@@ -75,24 +79,37 @@ class AppService {
     this._mediaRef = mediaRef;
   };
 
-  public async useDemo(num: string) {
-    this._setStore("sourceFileUrl", `/demos/${num}.mp3`);
+  public async startPractice(
+    isSourceVideo: boolean,
+    sourceUrl: string,
+    subtitleUrl: string
+  ) {
+    let lines = await this.parseSubtitle(subtitleUrl);
 
-    let fileName = `/demos/${num}.srt`;
-    let res = await fetch(fileName);
-    let text = await res.text();
-
-    this.updateLines(text, fileName);
+    this._setStore(
+      produce((store) => {
+        store.isSourceVideo = isSourceVideo;
+        store.sourceUrl = sourceUrl;
+        store.lines = lines;
+        store.isReady = true;
+      })
+    );
   }
 
-  public updateSourceFile(file: File) {
-    this._setStore("sourceFileUrl", URL.createObjectURL(file));
+  public stopPractice() {
+    this._setStore(
+      produce((store) => {
+        store.isReady = false;
+      })
+    );
   }
 
-  public async updateSubtitleFile(file: File) {
-    let text = await file.text();
-
-    this.updateLines(text, file.name);
+  public async useDemo(type: "audio" | "video") {
+    this.startPractice(
+      type == "video",
+      `/demos/${type == "video" ? "video.mp4" : "audio.mp3"}`,
+      `/demos/${type}.srt`
+    );
   }
 
   public async updateOption<O extends keyof AppStoreOptions>(
@@ -164,7 +181,7 @@ class AppService {
           chunks.push(e.data);
 
           if (this._recorder.state == "inactive") {
-            this._setStore("currentRecordingLine", line.index);
+            this._setStore("currentRecordingLine", -1);
             this.updateLineRecord(line, chunks);
             stream.getTracks().forEach((track) => track.stop());
           }
@@ -177,7 +194,7 @@ class AppService {
       });
   }
 
-  public stopRecording() {
+  public stopRecordingLine() {
     this._recorder?.stop();
   }
 
@@ -212,4 +229,16 @@ class AppService {
   }
 }
 
-export default new AppService();
+export function ServiceProvider(props: ParentProps) {
+  let service = new AppService();
+
+  return (
+    <AppServiceContext.Provider value={service}>
+      {props.children}
+    </AppServiceContext.Provider>
+  );
+}
+
+export function useService(): AppService {
+  return useContext(AppServiceContext);
+}
