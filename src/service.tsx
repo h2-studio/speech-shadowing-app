@@ -12,6 +12,7 @@ class AppService {
   private _crucker: Crunker;
   private _audio: HTMLAudioElement;
   private _recorder: MediaRecorder;
+  private _lastPlayedLine: SubtitleLine;
 
   public get store() {
     return this._store;
@@ -24,8 +25,6 @@ class AppService {
       isReady: false,
       isSourceVideo: false,
       sourceUrl: "",
-      currentPlayingLine: -1,
-      currentRecordingLine: -1,
       lines: [],
       options: {
         playLineWhileRecording: true,
@@ -55,6 +54,10 @@ class AppService {
           index: cue.sequence,
           start: cue.startTime.totals.inSeconds,
           end: cue.endTime.totals.inSeconds,
+          duration:
+            cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
+          isPlaying: false,
+          isRecording: false,
           text: cue.text.join(" "),
         } as SubtitleLine)
     );
@@ -69,6 +72,7 @@ class AppService {
       "lines",
       line.index,
       produce((line) => {
+        line.isRecording = false;
         line.record = new Blob(chunks);
         line.recordBlobUrl = URL.createObjectURL(line.record);
       })
@@ -77,6 +81,46 @@ class AppService {
 
   public setMediaRef = (mediaRef: HTMLMediaElement) => {
     this._mediaRef = mediaRef;
+
+    this._mediaRef.addEventListener("timeupdate", this.onMediaTimeUpdate);
+    this._mediaRef.addEventListener("pause", this.onMediaPause);
+  };
+
+  private onMediaTimeUpdate = () => {
+    let currentTime = this._mediaRef.currentTime;
+
+    if (
+      this._lastPlayedLine &&
+      currentTime >= this._lastPlayedLine.start &&
+      currentTime <= this._lastPlayedLine.end
+    ) {
+      // still playing the same line
+      return;
+    }
+
+    // Fine the current line
+    // TODO: better line search
+
+    let line = this._store.lines.find(
+      (line) => currentTime >= line.start && currentTime <= line.end
+    );
+
+    if (this._lastPlayedLine) {
+      this._setStore("lines", this._lastPlayedLine.index, "isPlaying", false);
+    }
+
+    this._lastPlayedLine = line;
+
+    if (line) {
+      this._setStore("lines", line.index, "isPlaying", true);
+    }
+  };
+
+  private onMediaPause = () => {
+    if (this._lastPlayedLine) {
+      this._setStore("lines", this._lastPlayedLine.index, "isPlaying", false);
+      this._lastPlayedLine = null;
+    }
   };
 
   public async startPractice(
@@ -119,30 +163,26 @@ class AppService {
     this._setStore("options", option, value);
   }
 
-  public async playLine(line: SubtitleLine, changeVolume: boolean = false) {
+  public async playLine(line: SubtitleLine, lowerVolume: boolean = false) {
     if (this._mediaRef.paused) {
-      this._setStore("currentPlayingLine", line.index);
-
       let oldVolume = this._mediaRef.volume;
       this._mediaRef.currentTime = line.start;
 
-      if (changeVolume) {
+      if (lowerVolume) {
         this._mediaRef.volume = 0.1;
       }
 
       await this._mediaRef.play();
 
       setTimeout(() => {
-        this._setStore("currentPlayingLine", -1);
-
         if (this._mediaRef.played) {
-          if (changeVolume) {
+          if (lowerVolume) {
             this._mediaRef.volume = oldVolume;
           }
 
           this._mediaRef.pause();
         }
-      }, (line.end - line.start) * 1000);
+      }, line.duration * 1000);
     }
   }
 
@@ -157,7 +197,7 @@ class AppService {
   }
 
   public recordLine(line: SubtitleLine) {
-    if (this._store.currentPlayingLine > 0) {
+    if (this._recorder?.state == "recording") {
       return;
     }
 
@@ -166,7 +206,7 @@ class AppService {
         audio: true,
       })
       .then((stream) => {
-        this._setStore("currentRecordingLine", line.index);
+        this._setStore("lines", line.index, "isRecording", true);
 
         let chunks = [] as Blob[];
 
@@ -181,7 +221,6 @@ class AppService {
           chunks.push(e.data);
 
           if (this._recorder.state == "inactive") {
-            this._setStore("currentRecordingLine", -1);
             this.updateLineRecord(line, chunks);
             stream.getTracks().forEach((track) => track.stop());
           }
@@ -190,11 +229,11 @@ class AppService {
         // TODO: better stop
         setTimeout(() => {
           this._recorder.stop();
-        }, (line.end - line.start + 1) * 1000);
+        }, (line.duration + 1) * 1000);
       });
   }
 
-  public stopRecordingLine() {
+  public stopRecordLine() {
     this._recorder?.stop();
   }
 

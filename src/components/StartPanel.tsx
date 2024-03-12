@@ -55,8 +55,8 @@ export default function PracticePanel(): JSXElement {
   };
 
   return (
-    <>
-      <section class="text-center">
+    <div class="text-center">
+      <section>
         <h2 class="text-2xl">How to use this app</h2>
         <p class="m-2">
           To use this app, you need to have a video(.mp4) file or an audio(.mp3)
@@ -147,13 +147,13 @@ export default function PracticePanel(): JSXElement {
           </div>
         </div>
       </section>
-      <section class="text-center mt-10">
+      <section class="mt-10">
         <h2 class="text-2xl">How to get resources</h2>
         <p>
           To get an video or an audio file, you can get them from any podcast or
           news website. For example:
         </p>
-        <ul class="ms-10 list-disc">
+        <ul class="ms-10 list-disc text-left">
           <li>VOA</li>
           <li>BBC</li>
         </ul>
@@ -178,6 +178,6 @@ export default function PracticePanel(): JSXElement {
         accept=".srt"
         onchange={onAudioSubFileSelected}
       />
-    </>
+    </div>
   );
 }
