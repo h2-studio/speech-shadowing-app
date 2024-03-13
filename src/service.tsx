@@ -151,8 +151,8 @@ class AppService {
   public async useDemo(type: "audio" | "video") {
     this.startPractice(
       type == "video",
-      `/demos/${type == "video" ? "video.mp4" : "audio.mp3"}`,
-      `/demos/${type}.srt`
+      `./demos/${type == "video" ? "video.mp4" : "audio.mp3"}`,
+      `./demos/${type}.srt`
     );
   }
 

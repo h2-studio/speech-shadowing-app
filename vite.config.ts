@@ -5,6 +5,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   root: "./src",
+  base: "./",
   plugins: [
     /* 
     Uncomment the following line to enable solid-devtools.
