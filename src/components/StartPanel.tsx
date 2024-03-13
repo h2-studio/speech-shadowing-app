@@ -123,7 +123,38 @@ export default function PracticePanel(): JSXElement {
         </div>
 
         <div class="mt-8">
-          <p>if you just want to try the app, you can use the demo files</p>
+          <h2 class="text-2xl">
+            Use resources from Speech Shadowing Subtitles project
+          </h2>
+
+          <p>
+            You can also use the subtitles from{" "}
+            <a
+              class="default"
+              href="https://github.com/h2-studio/speech-shadowing-subtitles"
+              target="_blank"
+            >
+              speech shadowing subtitles
+            </a>{" "}
+            project which is a public project that store shared subtitles
+          </p>
+
+          <button
+            type="button"
+            class="w-full p-1 bg-sky-400 hover:bg-sky-500"
+            onClick={() => {
+              alert("TODO");
+            }}
+          >
+            select resources
+          </button>
+        </div>
+
+        <div class="mt-8">
+          <p>
+            if you just want to try the app, the easiest way is use the demo
+            files
+          </p>
 
           <div class="columns-2 mx-10">
             <div>
@@ -146,30 +177,39 @@ export default function PracticePanel(): JSXElement {
             </div>
           </div>
           <p>
-            The demo
+            The demo{" "}
             <a
               href="https://learningenglish.voanews.com/a/offering-coffee-and-tea/7277846.html"
+              class="default"
               target="_blank"
             >
               audio
-            </a>
-            and
+            </a>{" "}
+            and{" "}
             <a
               href="https://learningenglish.voanews.com/a/7516761.html"
+              class="default"
               target="_blank"
             >
               video
-            </a>
-            were downloaded from
-            <a href="https://learningenglish.voanews.com/" target="_blank">
+            </a>{" "}
+            were downloaded from{" "}
+            <a
+              href="https://learningenglish.voanews.com/"
+              target="_blank"
+              class="default"
+            >
               VOA Learning English
-            </a>
-            and we created the subtitle files on
+            </a>{" "}
+            and we created the subtitle files on{" "}
             <a
               href="https://github.com/SubtitleEdit/subtitleedit"
+              class="default"
               target="_blank"
-            ></a>
-            SubtitleEdit by ourselves.
+            >
+              SubtitleEdit
+            </a>{" "}
+            by ourselves.
           </p>
         </div>
       </section>

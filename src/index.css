@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+a.default {
+  @apply underline hover:text-gray-500;
+}

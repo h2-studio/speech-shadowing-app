@@ -20,7 +20,6 @@ class AppService {
 
   constructor() {
     // TODO: load options from localStorage
-
     let stores = createStore({
       isReady: false,
       isSourceVideo: false,
@@ -151,8 +150,8 @@ class AppService {
   public async useDemo(type: "audio" | "video") {
     this.startPractice(
       type == "video",
-      `./demos/${type == "video" ? "video.mp4" : "audio.mp3"}`,
-      `./demos/${type}.srt`
+      `${import.meta.env.BASE_URL}demos/${type == "video" ? "video.mp4" : "audio.mp3"}`,
+      `${import.meta.env.BASE_URL}demos/${type}.srt`
     );
   }
 
