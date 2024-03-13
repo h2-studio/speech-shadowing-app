@@ -145,6 +145,32 @@ export default function PracticePanel(): JSXElement {
               </button>
             </div>
           </div>
+          <p>
+            The demo
+            <a
+              href="https://learningenglish.voanews.com/a/offering-coffee-and-tea/7277846.html"
+              target="_blank"
+            >
+              audio
+            </a>
+            and
+            <a
+              href="https://learningenglish.voanews.com/a/7516761.html"
+              target="_blank"
+            >
+              video
+            </a>
+            were downloaded from
+            <a href="https://learningenglish.voanews.com/" target="_blank">
+              VOA Learning English
+            </a>
+            and we created the subtitle files on
+            <a
+              href="https://github.com/SubtitleEdit/subtitleedit"
+              target="_blank"
+            ></a>
+            SubtitleEdit by ourselves.
+          </p>
         </div>
       </section>
       <section class="mt-10">
