@@ -2,6 +2,8 @@ import Crunker from "crunker";
 import * as ssp from "simple-subtitle-parser";
 import { Context, ParentProps, createContext, useContext } from "solid-js";
 import { SetStoreFunction, createStore, produce } from "solid-js/store";
+import toast from "solid-toast";
+import { toastErrorOptions } from "./const";
 
 const AppServiceContext = createContext<AppService>() as Context<AppService>;
 
@@ -83,6 +85,7 @@ class AppService {
 
     this._mediaRef.addEventListener("timeupdate", this.onMediaTimeUpdate);
     this._mediaRef.addEventListener("pause", this.onMediaPause);
+    this._mediaRef.addEventListener("error", this.onMediaError);
   };
 
   private onMediaTimeUpdate = () => {
@@ -122,21 +125,29 @@ class AppService {
     }
   };
 
+  private onMediaError = () => {
+    toast.error("Unable to load the media.", toastErrorOptions);
+  };
+
   public async startPractice(
     isSourceVideo: boolean,
     sourceUrl: string,
     subtitleUrl: string
   ) {
-    let lines = await this.parseSubtitle(subtitleUrl);
+    try {
+      let lines = await this.parseSubtitle(subtitleUrl);
 
-    this._setStore(
-      produce((store) => {
-        store.isSourceVideo = isSourceVideo;
-        store.sourceUrl = sourceUrl;
-        store.lines = lines;
-        store.isReady = true;
-      })
-    );
+      this._setStore(
+        produce((store) => {
+          store.isSourceVideo = isSourceVideo;
+          store.sourceUrl = sourceUrl;
+          store.lines = lines;
+          store.isReady = true;
+        })
+      );
+    } catch (error) {
+      toast.error("Unable to load the subtitle file.", toastErrorOptions);
+    }
   }
 
   public stopPractice() {
@@ -150,7 +161,9 @@ class AppService {
   public async useDemo(type: "audio" | "video") {
     this.startPractice(
       type == "video",
-      `${import.meta.env.BASE_URL}demos/${type == "video" ? "video.mp4" : "audio.mp3"}`,
+      `${import.meta.env.BASE_URL}demos/${
+        type == "video" ? "video.mp4" : "audio.mp3"
+      }`,
       `${import.meta.env.BASE_URL}demos/${type}.srt`
     );
   }

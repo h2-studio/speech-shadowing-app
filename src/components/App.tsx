@@ -1,10 +1,11 @@
-import { JSXElement, Match, Switch, onMount } from "solid-js";
+import { JSXElement, Match, onMount, Switch } from "solid-js";
+import { Toaster } from "solid-toast";
 
 import { useService } from "@/service";
 
-import PracticePanel from "./StartPanel";
 import Header from "./Header";
 import PlayerPanel from "./PracticePanel";
+import PracticePanel from "./StartPanel";
 
 export default function App(): JSXElement {
   let service = useService();
@@ -30,6 +31,7 @@ export default function App(): JSXElement {
           <PlayerPanel />
         </Match>
       </Switch>
+      <Toaster />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { createSignal, JSXElement } from "solid-js";
+import toast from "solid-toast";
 
+import { toastErrorOptions } from "@/const";
 import { useService } from "@/service";
 
 export default function PracticePanel(): JSXElement {
@@ -10,7 +12,6 @@ export default function PracticePanel(): JSXElement {
 
   let service = useService();
 
-  let [message, setMessage] = createSignal("");
   let [sourceFileName, setSourceFileName] = createSignal("");
   let [subtitleFileName, setSubtitleFileName] = createSignal("");
 
@@ -46,11 +47,12 @@ export default function PracticePanel(): JSXElement {
     }
 
     if (sourceUrl && subtitleUrl) {
-      setMessage("");
-
       service.startPractice(isSourceVideo, sourceUrl, subtitleUrl);
     } else {
-      setMessage("please provide resources before click start practice button");
+      toast.error(
+        "please provide resources before click start practice button",
+        toastErrorOptions
+      );
     }
   };
 
@@ -119,7 +121,6 @@ export default function PracticePanel(): JSXElement {
           >
             start practice
           </button>
-          <div class="text-red-400">{message()}</div>
         </div>
 
         <div class="mt-8">
@@ -143,7 +144,10 @@ export default function PracticePanel(): JSXElement {
             type="button"
             class="w-full p-1 bg-sky-400 hover:bg-sky-500"
             onClick={() => {
-              alert("TODO");
+              toast.error(
+                "This feature is still working in the progress.",
+                toastErrorOptions
+              );
             }}
           >
             select resources
