@@ -4,12 +4,13 @@ interface AppStoreOptions {
 }
 
 interface AppStore {
-  isReady: boolean;
-  isSourceVideo: boolean;
+  isVideo: boolean;
   sourceUrl: string;
   lines: SubtitleLine[];
   options: AppStoreOptions;
 }
+
+type ResourceType = "audio" | "video";
 
 interface SubtitleLine {
   index: number;
@@ -21,4 +22,19 @@ interface SubtitleLine {
   recordBlobUrl: string;
   isRecording: boolean;
   isPlaying: boolean;
+}
+
+interface ResourceList {
+  [category: string]: Resource[];
+}
+
+interface Resource {
+  type: ResourceType;
+  title: string;
+  duration: string;
+  sourceUrl: string;
+  subtitleUrl: string;
+  subtitlePath: string;
+  releasedDate: string;
+  from: string;
 }

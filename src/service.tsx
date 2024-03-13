@@ -1,9 +1,12 @@
 import Crunker from "crunker";
 import * as ssp from "simple-subtitle-parser";
-import { Context, ParentProps, createContext, useContext } from "solid-js";
-import { SetStoreFunction, createStore, produce } from "solid-js/store";
+import { Context, createContext, ParentProps, useContext } from "solid-js";
+import { createStore, produce, SetStoreFunction } from "solid-js/store";
 import toast from "solid-toast";
-import { toastErrorOptions } from "./const";
+
+import { Navigator } from "@solidjs/router";
+
+import { ToastErrorOptions } from "./const";
 
 const AppServiceContext = createContext<AppService>() as Context<AppService>;
 
@@ -15,6 +18,7 @@ class AppService {
   private _audio: HTMLAudioElement;
   private _recorder: MediaRecorder;
   private _lastPlayedLine: SubtitleLine;
+  private _navigator: Navigator;
 
   public get store() {
     return this._store;
@@ -23,8 +27,7 @@ class AppService {
   constructor() {
     // TODO: load options from localStorage
     let stores = createStore({
-      isReady: false,
-      isSourceVideo: false,
+      isVideo: false,
       sourceUrl: "",
       lines: [],
       options: {
@@ -80,14 +83,6 @@ class AppService {
     );
   }
 
-  public setMediaRef = (mediaRef: HTMLMediaElement) => {
-    this._mediaRef = mediaRef;
-
-    this._mediaRef.addEventListener("timeupdate", this.onMediaTimeUpdate);
-    this._mediaRef.addEventListener("pause", this.onMediaPause);
-    this._mediaRef.addEventListener("error", this.onMediaError);
-  };
-
   private onMediaTimeUpdate = () => {
     let currentTime = this._mediaRef.currentTime;
 
@@ -126,11 +121,23 @@ class AppService {
   };
 
   private onMediaError = () => {
-    toast.error("Unable to load the media.", toastErrorOptions);
+    toast.error("Unable to load the media.", ToastErrorOptions);
   };
 
+  public setMediaRef = (mediaRef: HTMLMediaElement) => {
+    this._mediaRef = mediaRef;
+
+    this._mediaRef.addEventListener("timeupdate", this.onMediaTimeUpdate);
+    this._mediaRef.addEventListener("pause", this.onMediaPause);
+    this._mediaRef.addEventListener("error", this.onMediaError);
+  };
+
+  public setNavigator(navigator: Navigator) {
+    this._navigator = navigator;
+  }
+
   public async startPractice(
-    isSourceVideo: boolean,
+    isVideo: boolean,
     sourceUrl: string,
     subtitleUrl: string
   ) {
@@ -139,26 +146,31 @@ class AppService {
 
       this._setStore(
         produce((store) => {
-          store.isSourceVideo = isSourceVideo;
+          store.isVideo = isVideo;
           store.sourceUrl = sourceUrl;
           store.lines = lines;
-          store.isReady = true;
         })
       );
+
+      this.navToPractice();
     } catch (error) {
-      toast.error("Unable to load the subtitle file.", toastErrorOptions);
+      toast.error("Unable to load the subtitle file.", ToastErrorOptions);
     }
   }
 
-  public stopPractice() {
-    this._setStore(
-      produce((store) => {
-        store.isReady = false;
-      })
-    );
+  public navToStart() {
+    this._navigator("/");
   }
 
-  public async useDemo(type: "audio" | "video") {
+  public navToPractice() {
+    this._navigator("/practice");
+  }
+
+  public navToResource() {
+    this._navigator("/resource");
+  }
+
+  public async useDemo(type: ResourceType) {
     this.startPractice(
       type == "video",
       `${import.meta.env.BASE_URL}demos/${

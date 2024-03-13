@@ -1,10 +1,10 @@
 import { createSignal, JSXElement } from "solid-js";
 import toast from "solid-toast";
 
-import { toastErrorOptions } from "@/const";
+import { ToastErrorOptions } from "@/const";
 import { useService } from "@/service";
 
-export default function PracticePanel(): JSXElement {
+export default function Start(): JSXElement {
   let sourceFileInputRef!: HTMLInputElement;
   let sourceUrlInputRef!: HTMLInputElement;
   let subtitleFileInputRef!: HTMLInputElement;
@@ -51,7 +51,7 @@ export default function PracticePanel(): JSXElement {
     } else {
       toast.error(
         "please provide resources before click start practice button",
-        toastErrorOptions
+        ToastErrorOptions
       );
     }
   };
@@ -144,10 +144,7 @@ export default function PracticePanel(): JSXElement {
             type="button"
             class="w-full p-1 bg-sky-400 hover:bg-sky-500"
             onClick={() => {
-              toast.error(
-                "This feature is still working in the progress.",
-                toastErrorOptions
-              );
+              service.navToResource();
             }}
           >
             select resources

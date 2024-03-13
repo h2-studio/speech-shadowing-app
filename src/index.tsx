@@ -1,8 +1,14 @@
+import "@/index.css";
+
 import { render } from "solid-js/web";
 
-import "@/index.css";
 import { ServiceProvider } from "@/service";
-import App from "@/components/App";
+import { MemoryRouter, Route } from "@solidjs/router";
+
+import Practice from "./pages/Practice";
+import Resource from "./pages/Resource";
+import Root from "./pages/Root";
+import Start from "./pages/Start";
 
 const app = document.getElementById("app");
 
@@ -15,7 +21,11 @@ if (import.meta.env.DEV && !(app instanceof HTMLElement)) {
 render(
   () => (
     <ServiceProvider>
-      <App />
+      <MemoryRouter root={Root}>
+        <Route path="/" component={Start} />
+        <Route path="/practice" component={Practice} />
+        <Route path="/resource" component={Resource} />
+      </MemoryRouter>
     </ServiceProvider>
   ),
   app!

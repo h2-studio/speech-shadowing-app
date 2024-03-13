@@ -1,17 +1,16 @@
-import { JSXElement, Match, onMount, Switch } from "solid-js";
+import { JSXElement, onMount, ParentProps } from "solid-js";
 import { Toaster } from "solid-toast";
 
+import Header from "@/components/Header";
 import { useService } from "@/service";
+import { useNavigate } from "@solidjs/router";
 
-import Header from "./Header";
-import PlayerPanel from "./PracticePanel";
-import PracticePanel from "./StartPanel";
-
-export default function App(): JSXElement {
+export default function Root(props: ParentProps): JSXElement {
   let service = useService();
+  service.setNavigator(useNavigate());
 
   onMount(() => {
-    // check the url
+    // check the quest string
     let query = new URLSearchParams(location.search);
 
     if (query.has("sourceUrl") && query.has("subtitleUrl")) {
@@ -26,11 +25,7 @@ export default function App(): JSXElement {
   return (
     <>
       <Header />
-      <Switch fallback={<PracticePanel />}>
-        <Match when={service.store.isReady}>
-          <PlayerPanel />
-        </Match>
-      </Switch>
+      {props.children}
       <Toaster />
     </>
   );

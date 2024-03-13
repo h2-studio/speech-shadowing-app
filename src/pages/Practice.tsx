@@ -1,32 +1,32 @@
-import { For, Index, JSXElement, Show } from "solid-js";
+import { Index, JSXElement } from "solid-js";
 
 import { useService } from "@/service";
 
-import Button from "./Button";
-import Line from "./Line";
+import Button from "../components/Button";
+import Line from "../components/Line";
 
-export default function PlayerPanel(): JSXElement {
+export default function Practice(): JSXElement {
   let service = useService();
 
   return (
     <>
-      <div class="text-right my-2">
+      <div class="my-2">
         <button
           type="button"
           class="p-1 underline"
           onClick={() => {
-            service.stopPractice();
+            service.navToStart();
           }}
         >
-          stop
+          back
         </button>
       </div>
       <div>
         <video
           class="w-full"
           classList={{
-            "max-h-80": service.store.isSourceVideo,
-            "max-h-10": !service.store.isSourceVideo,
+            "max-h-80": service.store.isVideo,
+            "max-h-10": !service.store.isVideo,
           }}
           ref={service.setMediaRef}
           src={service.store.sourceUrl}
