@@ -37,27 +37,45 @@ export default function Practice(): JSXElement {
 
       <div class="py-4">
         options:
-        <input
-          type="checkbox"
-          onClick={() => {
-            service.updateOption(
-              "playLineWhileRecording",
-              !service.store.options.playLineWhileRecording
-            );
-          }}
-          checked={service.store.options.playLineWhileRecording}
-        />
-        play which recording
-        <Button onClick={() => service.exportRecord()}>save records</Button>
+        <span class="mx-2">
+          play while recording{" "}
+          <input
+            type="checkbox"
+            onClick={() => {
+              service.updateOption(
+                "playLineWhileRecording",
+                !service.store.options.playLineWhileRecording
+              );
+            }}
+            checked={service.store.options.playLineWhileRecording}
+          />
+        </span>
+        <span>
+          , rate:{" "}
+          <select
+            class="border border-gray-500"
+            value={service.store.options.playbackRate}
+            onChange={(e) => {
+              service.updatePlaybackRate(JSON.parse(e.target.value));
+            }}
+          >
+            <option value="0.5">0.5</option>
+            <option value="0.75">0.75</option>
+            <option value="1">1</option>
+            <option value="1.25">1.25</option>
+            <option value="1.5">1.5</option>
+          </select>
+        </span>
+        <Button class="mx-2" onClick={() => service.exportRecord()}>
+          save records
+        </Button>
       </div>
 
       {/* TODO: sticky top */}
 
       <div class="py-4">
         <Index each={service.store.lines}>
-          {(line) => (
-            <Line line={line()}/>  
-          )}
+          {(line) => <Line line={line()} />}
         </Index>
       </div>
     </>

@@ -49,100 +49,37 @@ export default function Start(): JSXElement {
     if (sourceUrl && subtitleUrl) {
       service.startPractice(isSourceVideo, sourceUrl, subtitleUrl);
     } else {
-      toast.error(
-        "please provide resources before click start practice button",
-        ToastErrorOptions
-      );
+      toast.error("please provide resources", ToastErrorOptions);
     }
   };
 
   return (
     <div class="text-center">
-      <section>
+      <div>
         <h2 class="text-2xl">How to use this app</h2>
-        <p class="m-2">
-          To use this app, you need to have a video(.mp4) file or an audio(.mp3)
-          file and a subtitle(.srt) file, it can be either urls from websites or
-          on your computer.
-        </p>
-        <div class="my-5">
-          <h3 class="text-lg">
-            provide an video or audio file by the one of fellowing options
+        <p class="m-5">There are two ways to use this app.</p>
+
+        <div class="mt-5 border border-gray-400 p-4 rounded-md">
+          <h3 class="text-2xl">
+            1. use resources from Speech-Shadowing-Resource repository
           </h3>
-
-          <button
-            type="button"
-            class="w-full p-1 bg-slate-400 hover:bg-slate-500"
-            onClick={() => {
-              sourceFileInputRef.click();
-            }}
-          >
-            {sourceFileName()
-              ? sourceFileName()
-              : "select an .mp3 or .mp4 file"}
-          </button>
-          <p>or</p>
-          <input
-            ref={sourceUrlInputRef}
-            type="text"
-            class="w-full border border-gray-800 p-1"
-            placeholder="input the url of an .mp3 or .mp4 file"
-          />
-        </div>
-
-        <div class="my-5">
-          <h3 class="text-lg">
-            provide an subtitle file by the one of fellowing options
-          </h3>
-
-          <button
-            type="button"
-            class="w-full p-1 bg-slate-400 hover:bg-slate-500"
-            onClick={() => {
-              subtitleFileInputRef.click();
-            }}
-          >
-            {subtitleFileName() ? subtitleFileName() : "select an .srt file"}
-          </button>
-          <p>or</p>
-          <input
-            ref={subtitleUrlInputRef}
-            type="text"
-            class="w-full border border-gray-800 p-1"
-            placeholder="input the url of .srt file"
-          />
-        </div>
-
-        <div>
-          <button
-            type="button"
-            class="w-full p-1 bg-sky-400 hover:bg-sky-500"
-            onClick={start}
-          >
-            start practice
-          </button>
-        </div>
-
-        <div class="mt-8">
-          <h2 class="text-2xl">
-            Use resources from Speech Shadowing Subtitles project
-          </h2>
 
           <p>
-            You can also use the subtitles from{" "}
+            You can use the resource from{" "}
             <a
               class="default"
-              href="https://github.com/h2-studio/speech-shadowing-subtitles"
+              href="https://github.com/h2-studio/speech-shadowing-resources"
               target="_blank"
             >
-              speech shadowing subtitles
+              Speech-Shadowing-Resources
             </a>{" "}
-            project which is a public project that store shared subtitles
+            which is a public repository storing shared resources.{" "}
+            <b>You can also contribute resources as well!</b>
           </p>
 
           <button
             type="button"
-            class="w-full p-1 bg-sky-400 hover:bg-sky-500"
+            class="w-full p-2 mt-4 bg-sky-400 hover:bg-sky-500"
             onClick={() => {
               service.navToResource();
             }}
@@ -150,11 +87,73 @@ export default function Start(): JSXElement {
             select resources
           </button>
         </div>
-
-        <div class="mt-8">
+        <div class="mt-5 border border-gray-400 p-4 rounded-md">
+          <h3 class="text-2xl">
+            2. load an video or audio file form your computer or urls
+          </h3>
           <p>
-            if you just want to try the app, the easiest way is use the demo
-            files
+            you can use a video(.mp4) file or an audio(.mp3) file and a
+            subtitle(.srt) file form other websites or from your computer.
+          </p>
+          <div class="my-5">
+            <button
+              type="button"
+              class="w-full p-1 bg-slate-400 hover:bg-slate-500"
+              onClick={() => {
+                sourceFileInputRef.click();
+              }}
+            >
+              {sourceFileName()
+                ? sourceFileName()
+                : "select an .mp3 or .mp4 file from your computer"}
+            </button>
+            <p>or</p>
+            <input
+              ref={sourceUrlInputRef}
+              type="text"
+              class="w-full border border-gray-800 p-1"
+              placeholder="input the url of an .mp3 or .mp4 file"
+            />
+          </div>
+
+          <div class="my-5">
+            <button
+              type="button"
+              class="w-full p-1 bg-slate-400 hover:bg-slate-500"
+              onClick={() => {
+                subtitleFileInputRef.click();
+              }}
+            >
+              {subtitleFileName()
+                ? subtitleFileName()
+                : "select an .srt file from your computer"}
+            </button>
+            <p>or</p>
+            <input
+              ref={subtitleUrlInputRef}
+              type="text"
+              class="w-full border border-gray-800 p-1"
+              placeholder="input the url of .srt file"
+            />
+          </div>
+
+          <div>
+            <button
+              type="button"
+              class="w-full p-1 bg-sky-400 hover:bg-sky-500"
+              onClick={start}
+            >
+              load resources
+            </button>
+          </div>
+        </div>
+
+        <h3 class="mt-5 text-2xl">Demo</h3>
+
+        <div class="mt-5 border border-gray-400 p-4 rounded-md">
+          <p>
+            if you just want to try the app, the easiest way is use these demo
+            resources
           </p>
 
           <div class="columns-2 mx-10">
@@ -202,7 +201,7 @@ export default function Start(): JSXElement {
             >
               VOA Learning English
             </a>{" "}
-            and we created the subtitle files on{" "}
+            and we created the subtitles on{" "}
             <a
               href="https://github.com/SubtitleEdit/subtitleedit"
               class="default"
@@ -210,12 +209,12 @@ export default function Start(): JSXElement {
             >
               SubtitleEdit
             </a>{" "}
-            by ourselves.
+            manually.
           </p>
         </div>
-      </section>
-      <section class="mt-10">
-        <h2 class="text-2xl">How to get resources</h2>
+      </div>
+      <h2 class="my-5 text-2xl">How to get resources</h2>
+      <div class="my-5 border border-gray-400 p-4 rounded-md">
         <p>
           To get an video or an audio file, you can get them from any podcast or
           news website. For example:
@@ -230,7 +229,7 @@ export default function Start(): JSXElement {
           However, you can use tools like Subtitle Edit or a AI tool to generate
           them.
         </p>
-      </section>
+      </div>
       <input
         ref={sourceFileInputRef}
         type="file"

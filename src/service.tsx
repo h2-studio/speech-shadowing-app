@@ -6,7 +6,7 @@ import toast from "solid-toast";
 
 import { Navigator } from "@solidjs/router";
 
-import { ToastErrorOptions } from "./const";
+import { PlaybackEffects, ToastErrorOptions } from "./const";
 
 const AppServiceContext = createContext<AppService>() as Context<AppService>;
 
@@ -25,14 +25,16 @@ class AppService {
   }
 
   constructor() {
-    // TODO: load options from localStorage
     let stores = createStore({
       isVideo: false,
       sourceUrl: "",
       lines: [],
       options: {
-        playLineWhileRecording: true,
-        playRate: 1,
+        playLineWhileRecording: JSON.parse(
+          localStorage.getItem("option:playLineWhileRecording")
+        ),
+        playbackRate:
+          JSON.parse(localStorage.getItem("option:playbackRate")) || 1,
       },
     } as AppStore);
 
@@ -127,6 +129,9 @@ class AppService {
   public setMediaRef = (mediaRef: HTMLMediaElement) => {
     this._mediaRef = mediaRef;
 
+    this._mediaRef.addEventListener("loadstart", () => {
+      this._mediaRef.playbackRate = this._store.options.playbackRate;
+    });
     this._mediaRef.addEventListener("timeupdate", this.onMediaTimeUpdate);
     this._mediaRef.addEventListener("pause", this.onMediaPause);
     this._mediaRef.addEventListener("error", this.onMediaError);
@@ -180,11 +185,17 @@ class AppService {
     );
   }
 
+  public async updatePlaybackRate(playbackRate: number) {
+    this._mediaRef.playbackRate = playbackRate;
+    this.updateOption("playbackRate", playbackRate);
+  }
+
   public async updateOption<O extends keyof AppStoreOptions>(
     option: O,
     value: AppStoreOptions[O]
   ) {
     this._setStore("options", option, value);
+    localStorage.setItem(`option:${option}`, JSON.stringify(value));
   }
 
   public async playLine(line: SubtitleLine, lowerVolume: boolean = false) {
@@ -198,6 +209,9 @@ class AppService {
 
       await this._mediaRef.play();
 
+      let duration =
+        line.duration * PlaybackEffects[this._mediaRef.playbackRate] * 1000;
+      console.log(`old duration:${line.duration}, new duration:${duration}`);
       setTimeout(() => {
         if (this._mediaRef.played) {
           if (lowerVolume) {
@@ -206,7 +220,7 @@ class AppService {
 
           this._mediaRef.pause();
         }
-      }, line.duration * 1000);
+      }, duration);
     }
   }
 
@@ -251,9 +265,13 @@ class AppService {
         };
 
         // TODO: better stop
+        let duration =
+          (line.duration * PlaybackEffects[this._mediaRef.playbackRate] + 1) *
+          1000; // one more second to stop
+          
         setTimeout(() => {
           this._recorder.stop();
-        }, (line.duration + 1) * 1000);
+        }, duration);
       });
   }
 

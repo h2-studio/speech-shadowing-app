@@ -1,5 +1,12 @@
 import {
-  createEffect, createResource, createSignal, For, JSXElement, Match, Show, Switch
+  createEffect,
+  createResource,
+  createSignal,
+  For,
+  JSXElement,
+  Match,
+  Show,
+  Switch,
 } from "solid-js";
 
 import { ResourceJsonUrl, ResourceRepoUrl } from "@/const";
@@ -24,22 +31,26 @@ export default function Resource(): JSXElement {
 
   return (
     <>
+      <div>
+        <button
+          type="button"
+          class="underline hover:text-gray-700"
+          onClick={() => {
+            if (category()){
+              setCategory(null);
+            } else {
+              service.navToStart();
+            }
+          }}
+        >
+          back
+        </button>
+      </div>
       <Show when={resourceJson.loading}>Loading resource list</Show>
       <Switch>
         <Match when={category() != null}>
           <div>
-            <div>
-              {category()}{" "}
-              <button
-                type="button"
-                class="underline hover:text-gray-700"
-                onClick={() => {
-                  setCategory(null);
-                }}
-              >
-                back
-              </button>
-            </div>
+            <div>{category()} </div>
             <For each={resourceJson()[category()]}>
               {(item) => (
                 <div

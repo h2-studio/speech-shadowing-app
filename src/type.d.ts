@@ -1,6 +1,6 @@
 interface AppStoreOptions {
   playLineWhileRecording: boolean;
-  playRate: number;
+  playbackRate: number;
 }
 
 interface AppStore {
