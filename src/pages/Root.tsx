@@ -7,7 +7,7 @@ import { useNavigate } from "@solidjs/router";
 
 export default function Root(props: ParentProps): JSXElement {
   let service = useService();
-  service.init(useNavigate());
+  service.setNavigator(useNavigate());
 
   onMount(() => {
     // check the quest string

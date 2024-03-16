@@ -15,10 +15,9 @@ class AppService {
   private _store: AppStore;
   private _setStore: SetStoreFunction<AppStore>;
   private _crucker: Crunker;
-  private _audio: HTMLAudioElement;
   private _recorder: MediaRecorder;
-  private _lastPlayedLine: SubtitleLine;
   private _navigator: Navigator;
+  private _playTimeoutId: number;
 
   public get store() {
     return this._store;
@@ -36,6 +35,7 @@ class AppService {
         playbackRate:
           JSON.parse(localStorage.getItem("option:playbackRate")) || 1,
       },
+      isRecording: false,
     } as AppStore);
 
     this._store = stores[0];
@@ -59,25 +59,19 @@ class AppService {
           end: cue.endTime.totals.inSeconds,
           duration:
             cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
-          isPlaying: false,
-          isRecording: false,
           text: cue.text.join(" "),
         } as SubtitleLine)
     );
   }
 
   private async updateLineRecord(line: SubtitleLine, chunks: Blob[]) {
-    if (line.recordBlobUrl) {
-      URL.revokeObjectURL(line.recordBlobUrl);
-    }
-
+    let buffer = await new Blob(chunks).arrayBuffer();
+    let record = await this._crucker.context.decodeAudioData(buffer);
     this._setStore(
       "lines",
       line.index,
       produce((line) => {
-        line.isRecording = false;
-        line.record = new Blob(chunks);
-        line.recordBlobUrl = URL.createObjectURL(line.record);
+        line.record = record;
       })
     );
   }
@@ -88,11 +82,14 @@ class AppService {
 
   private onMediaTimeUpdate() {
     let currentTime = this._mediaRef.currentTime;
+    let currentLine = this._store.currentLineIndex
+      ? this._store.lines[this._store.currentLineIndex]
+      : null;
 
     if (
-      this._lastPlayedLine &&
-      currentTime >= this._lastPlayedLine.start &&
-      currentTime <= this._lastPlayedLine.end
+      currentLine &&
+      currentTime >= currentLine.start &&
+      currentTime <= currentLine.end
     ) {
       // still playing the same line
       return;
@@ -105,21 +102,8 @@ class AppService {
       (line) => currentTime >= line.start && currentTime <= line.end
     );
 
-    if (this._lastPlayedLine) {
-      this._setStore("lines", this._lastPlayedLine.index, "isPlaying", false);
-    }
-
-    this._lastPlayedLine = line;
-
     if (line) {
-      this._setStore("lines", line.index, "isPlaying", true);
-    }
-  }
-
-  private onMediaPause() {
-    if (this._lastPlayedLine) {
-      this._setStore("lines", this._lastPlayedLine.index, "isPlaying", false);
-      this._lastPlayedLine = null;
+      this.selectLine(line.index);
     }
   }
 
@@ -127,11 +111,8 @@ class AppService {
     toast.error("Unable to load the media.", ToastErrorOptions);
   }
 
-  public init(navigator: Navigator) {
+  public setNavigator(navigator: Navigator) {
     this._navigator = navigator;
-
-    this._crucker = new Crunker();
-    this._audio = new Audio();
   }
 
   public setMediaRef(mediaRef: HTMLMediaElement) {
@@ -142,9 +123,6 @@ class AppService {
     });
     this._mediaRef.addEventListener("timeupdate", () => {
       this.onMediaTimeUpdate();
-    });
-    this._mediaRef.addEventListener("pause", () => {
-      this.onMediaPause();
     });
     this._mediaRef.addEventListener("error", () => {
       this.onMediaError();
@@ -208,40 +186,59 @@ class AppService {
     localStorage.setItem(`option:${option}`, JSON.stringify(value));
   }
 
-  public async playLine(line: SubtitleLine, lowerVolume: boolean = false) {
-    if (this._mediaRef.paused) {
-      let oldVolume = this._mediaRef.volume;
+  public selectLine(index: number) {
+    this._setStore("currentLineIndex", index);
+    if (index != null) {
+      let line = this._store.lines[index];
+
       this._mediaRef.currentTime = line.start;
-
-      if (lowerVolume) {
-        this._mediaRef.volume = 0.1;
-      }
-
-      await this._mediaRef.play();
-
-      let duration =
-        line.duration * PlaybackEffects[this._mediaRef.playbackRate] * 1000;
-      console.log(`old duration:${line.duration}, new duration:${duration}`);
-      setTimeout(() => {
-        if (this._mediaRef.played) {
-          if (lowerVolume) {
-            this._mediaRef.volume = oldVolume;
-          }
-
-          this._mediaRef.pause();
-        }
-      }, duration);
     }
   }
 
-  public async playLineRecord(line: SubtitleLine) {
-    if (!this._audio.paused) {
-      this._audio.pause();
+  public selectPreviousLine() {
+    if (this._store.currentLineIndex > 0) {
+      this.selectLine(this._store.currentLineIndex - 1);
+    }
+  }
+
+  public selectNextLine() {
+    if (this._store.currentLineIndex < this._store.lines.length) {
+      this.selectLine(this._store.currentLineIndex + 1);
+    }
+  }
+
+  public async playLine(line: SubtitleLine, lowVolume: boolean = false) {
+    clearTimeout(this._playTimeoutId);
+
+    this._mediaRef.currentTime = line.start;
+
+    let originVolume: number;
+    if (lowVolume) {
+      originVolume = this._mediaRef.volume;
+      this._mediaRef.volume = 0.1;
     }
 
-    this._audio.src = line.recordBlobUrl;
+    await this._mediaRef.play();
 
-    this._audio.play();
+    let duration =
+      line.duration * PlaybackEffects[this._mediaRef.playbackRate] * 1000;
+
+    this._playTimeoutId = setTimeout(() => {
+      if (!this._mediaRef.paused) {
+        if (lowVolume) {
+          this._mediaRef.volume = originVolume;
+        }
+
+        this._mediaRef.pause();
+      }
+    }, duration);
+  }
+
+  public async playLineRecord(line: SubtitleLine) {
+    let source = this._crucker.context.createBufferSource();
+    source.buffer = line.record;
+    source.connect(this._crucker.context.destination);
+    source.start();
   }
 
   public recordLine(line: SubtitleLine) {
@@ -249,12 +246,16 @@ class AppService {
       return;
     }
 
+    if (this._crucker == null) {
+      this._crucker = new Crunker();
+    }
+
     navigator.mediaDevices
       .getUserMedia({
         audio: true,
       })
       .then((stream) => {
-        this._setStore("lines", line.index, "isRecording", true);
+        this._setStore("isRecording", true);
 
         let chunks = [] as Blob[];
 
@@ -269,6 +270,7 @@ class AppService {
           chunks.push(e.data);
 
           if (this._recorder.state == "inactive") {
+            this._setStore("isRecording", false);
             this.updateLineRecord(line, chunks);
             stream.getTracks().forEach((track) => track.stop());
           }
@@ -276,8 +278,7 @@ class AppService {
 
         // TODO: better stop
         let duration =
-          (line.duration * PlaybackEffects[this._mediaRef.playbackRate] + 1) *
-          1000; // one more second to stop
+          line.duration * PlaybackEffects[this._mediaRef.playbackRate] * 1500; // 1.2x time to stop
 
         setTimeout(() => {
           this._recorder.stop();
@@ -285,25 +286,21 @@ class AppService {
       });
   }
 
-  public stopRecordLine() {
+  public stopRecord() {
     this._recorder?.stop();
   }
 
   public async exportRecord() {
+    // TODO: remove or pad empty audio
     let audioBuffer: AudioBuffer | null = null;
 
     for (let line of this._store.lines) {
       if (line.record) {
-        // decode each record to array buffer
-        let temp = await this._crucker.context.decodeAudioData(
-          await line.record.arrayBuffer()
-        );
-
         if (audioBuffer == null) {
-          audioBuffer = temp;
+          audioBuffer = line.record;
         } else {
           // concatenate each record by crunker
-          audioBuffer = this._crucker.concatAudio([audioBuffer, temp]);
+          audioBuffer = this._crucker.concatAudio([audioBuffer, line.record]);
         }
       }
     }
@@ -314,7 +311,8 @@ class AppService {
       ele.href = exp.url;
 
       // TODO: better export name
-      ele.download = "speech-shadowing-record.mp3";
+      let date = new Date().toISOString().substring(0, 10);
+      ele.download = `speech-shadowing-record-${date}.mp3`;
       ele.click();
     }
   }

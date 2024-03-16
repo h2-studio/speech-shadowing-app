@@ -1,9 +1,9 @@
-import { Index, JSXElement } from "solid-js";
+import { For, JSXElement, Show } from "solid-js";
 
 import { useService } from "@/service";
 
 import Button from "../components/Button";
-import Line from "../components/Line";
+import PracticeLine from "../components/PracticeLine";
 
 export default function Practice(): JSXElement {
   let service = useService();
@@ -74,9 +74,32 @@ export default function Practice(): JSXElement {
       {/* TODO: sticky top */}
 
       <div class="py-4">
-        <Index each={service.store.lines}>
-          {(line) => <Line line={line()} />}
-        </Index>
+        <Show when={service.store.currentLineIndex == null}>
+          <For each={service.store.lines}>
+            {(line) => (
+              <div
+                class="py-1 hover:bg-blue-100 cursor-pointer"
+                onClick={() => service.selectLine(line.index)}
+              >
+                {line.index + 1}. {line.text}
+              </div>
+            )}
+          </For>
+        </Show>
+        <Show when={service.store.currentLineIndex != null}>
+          <div>
+            <div class="text-right">
+              <button
+                type="button"
+                class="underline hover:text-gray-500"
+                onClick={() => service.selectLine(null)}
+              >
+                close
+              </button>
+            </div>
+            <PracticeLine />
+          </div>
+        </Show>
       </div>
     </>
   );

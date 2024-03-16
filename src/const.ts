@@ -13,9 +13,9 @@ export const ToastErrorOptions: ToastOptions = {
 };
 
 export const PlaybackEffects: { [rate: number]: number } = {
-  [0.5]: 2,
-  [0.75]: 1.33,
+  [0.5]: 1 / 0.5,
+  [0.75]: 1 / 0.75,
   [1]: 1,
-  [1.25]: 0.8,
-  [1.5]: 0.66,
+  [1.25]: 1 / 1.25,
+  [1.5]: 1 / 1.5,
 };
