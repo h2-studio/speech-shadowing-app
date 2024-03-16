@@ -1,4 +1,4 @@
-import { For, JSXElement, Show } from "solid-js";
+import { For, JSXElement, Show, onCleanup, onMount } from "solid-js";
 
 import { useService } from "@/service";
 
@@ -7,6 +7,44 @@ import PracticeLine from "../components/PracticeLine";
 
 export default function Practice(): JSXElement {
   let service = useService();
+
+  let onKeyEvent = (e: KeyboardEvent) => {    
+    e.preventDefault();
+
+    switch (e.code) {
+      case "ArrowLeft":
+      case "ArrowUp":
+        service.selectPreviousLine();
+        break;
+      case "ArrowRight":
+      case "ArrowDown":
+        service.selectNextLine();
+        break;
+      case "Escape":
+        service.unselectLine();
+        break;
+      case "Enter":
+        service.recordSelectLine();
+        break;
+      case "Space":
+        if (e.ctrlKey) {
+          service.playSelectLineRecord();
+        } else {
+          service.playSelectLine();
+        }
+        break;
+    }
+
+    return false;
+  };
+
+  onMount(() => {
+    document.addEventListener("keydown", onKeyEvent);
+  });
+
+  onCleanup(() => {
+    document.removeEventListener("keydown", onKeyEvent);
+  });
 
   return (
     <>
@@ -92,7 +130,7 @@ export default function Practice(): JSXElement {
               <button
                 type="button"
                 class="underline hover:text-gray-500"
-                onClick={() => service.selectLine(null)}
+                onClick={() => service.unselectLine()}
               >
                 close
               </button>

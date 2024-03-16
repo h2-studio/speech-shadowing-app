@@ -103,7 +103,7 @@ class AppService {
     );
 
     if (line) {
-      this.selectLine(line.index);
+      this.selectLine(line.index, false);
     }
   }
 
@@ -142,6 +142,7 @@ class AppService {
           store.isVideo = isVideo;
           store.sourceUrl = sourceUrl;
           store.lines = lines;
+          store.currentLineIndex = null;
         })
       );
 
@@ -186,24 +187,49 @@ class AppService {
     localStorage.setItem(`option:${option}`, JSON.stringify(value));
   }
 
-  public selectLine(index: number) {
+  public selectLine(index: number, updateTime: boolean = true) {
     this._setStore("currentLineIndex", index);
     if (index != null) {
       let line = this._store.lines[index];
 
-      this._mediaRef.currentTime = line.start;
+      if (updateTime) {
+        this._mediaRef.currentTime = line.start;
+      }
     }
+  }
+  public unselectLine() {
+    this._setStore("currentLineIndex", null);
   }
 
   public selectPreviousLine() {
-    if (this._store.currentLineIndex > 0) {
+    if (this._store.currentLineIndex == null) {
+      this.selectLine(0);
+    } else if (this._store.currentLineIndex > 0) {
       this.selectLine(this._store.currentLineIndex - 1);
     }
   }
 
   public selectNextLine() {
-    if (this._store.currentLineIndex < this._store.lines.length) {
+    if (this._store.currentLineIndex == null) {
+      this.selectLine(0);
+    } else if (this._store.currentLineIndex < this._store.lines.length) {
       this.selectLine(this._store.currentLineIndex + 1);
+    }
+  }
+
+  public playSelectLine() {
+    this.playLine(this._store.lines[this._store.currentLineIndex || 0]);
+  }
+
+  public playSelectLineRecord() {
+    if (this._store.currentLineIndex != null) {
+      this.playLineRecord(this._store.lines[this._store.currentLineIndex]);
+    }
+  }
+
+  public recordSelectLine() {
+    if (this._store.currentLineIndex != null) {
+      this.recordLine(this._store.lines[this._store.currentLineIndex]);
     }
   }
 
@@ -235,6 +261,10 @@ class AppService {
   }
 
   public async playLineRecord(line: SubtitleLine) {
+    if (!line.record) {
+      return;
+    }
+
     let source = this._crucker.context.createBufferSource();
     source.buffer = line.record;
     source.connect(this._crucker.context.destination);
