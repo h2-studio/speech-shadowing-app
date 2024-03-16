@@ -40,9 +40,6 @@ class AppService {
 
     this._store = stores[0];
     this._setStore = stores[1];
-
-    this._crucker = new Crunker();
-    this._audio = new Audio();
   }
 
   private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
@@ -85,7 +82,11 @@ class AppService {
     );
   }
 
-  private onMediaTimeUpdate = () => {
+  private onMediaStart() {
+    this._mediaRef.playbackRate = this._store.options.playbackRate;
+  }
+
+  private onMediaTimeUpdate() {
     let currentTime = this._mediaRef.currentTime;
 
     if (
@@ -113,32 +114,41 @@ class AppService {
     if (line) {
       this._setStore("lines", line.index, "isPlaying", true);
     }
-  };
+  }
 
-  private onMediaPause = () => {
+  private onMediaPause() {
     if (this._lastPlayedLine) {
       this._setStore("lines", this._lastPlayedLine.index, "isPlaying", false);
       this._lastPlayedLine = null;
     }
-  };
+  }
 
-  private onMediaError = () => {
+  private onMediaError() {
     toast.error("Unable to load the media.", ToastErrorOptions);
-  };
+  }
 
-  public setMediaRef = (mediaRef: HTMLMediaElement) => {
+  public init(navigator: Navigator) {
+    this._navigator = navigator;
+
+    this._crucker = new Crunker();
+    this._audio = new Audio();
+  }
+
+  public setMediaRef(mediaRef: HTMLMediaElement) {
     this._mediaRef = mediaRef;
 
     this._mediaRef.addEventListener("loadstart", () => {
-      this._mediaRef.playbackRate = this._store.options.playbackRate;
+      this.onMediaStart();
     });
-    this._mediaRef.addEventListener("timeupdate", this.onMediaTimeUpdate);
-    this._mediaRef.addEventListener("pause", this.onMediaPause);
-    this._mediaRef.addEventListener("error", this.onMediaError);
-  };
-
-  public setNavigator(navigator: Navigator) {
-    this._navigator = navigator;
+    this._mediaRef.addEventListener("timeupdate", () => {
+      this.onMediaTimeUpdate();
+    });
+    this._mediaRef.addEventListener("pause", () => {
+      this.onMediaPause();
+    });
+    this._mediaRef.addEventListener("error", () => {
+      this.onMediaError();
+    });
   }
 
   public async startPractice(
@@ -268,7 +278,7 @@ class AppService {
         let duration =
           (line.duration * PlaybackEffects[this._mediaRef.playbackRate] + 1) *
           1000; // one more second to stop
-          
+
         setTimeout(() => {
           this._recorder.stop();
         }, duration);

@@ -28,7 +28,7 @@ export default function Practice(): JSXElement {
             "max-h-80": service.store.isVideo,
             "max-h-10": !service.store.isVideo,
           }}
-          ref={service.setMediaRef}
+          ref={(ref) => service.setMediaRef(ref)}
           src={service.store.sourceUrl}
           controls
           autoplay={false}
