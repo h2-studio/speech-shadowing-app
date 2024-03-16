@@ -1,0 +1,283 @@
+import * as ssp from "simple-subtitle-parser";
+import { createStore, produce, SetStoreFunction } from "solid-js/store";
+import toast from "solid-toast";
+
+import { PlaybackEffects, ToastErrorOptions } from "@/const";
+import { Navigator } from "@solidjs/router";
+
+import { AudioService } from "./audio-service";
+
+export class AppService {
+  private _mediaRef: HTMLMediaElement;
+  private _store: AppStore;
+  private _setStore: SetStoreFunction<AppStore>;
+  private _navigator: Navigator;
+  private _playTimeoutId: number;
+  private _audioService: AudioService;
+
+  public get store() {
+    return this._store;
+  }
+
+  constructor() {
+    let stores = createStore({
+      isVideo: false,
+      sourceUrl: "",
+      lines: [],
+      options: {
+        playLineWhileRecording: JSON.parse(
+          localStorage.getItem("option:playLineWhileRecording")
+        ),
+        playbackRate:
+          JSON.parse(localStorage.getItem("option:playbackRate")) || 1,
+      },
+      isRecording: false,
+    } as AppStore);
+
+    this._store = stores[0];
+    this._setStore = stores[1];
+
+    this._audioService = new AudioService();
+    this._audioService.onStateUpdate = (isRecording) => {
+      this._setStore("isRecording", isRecording);
+    };
+  }
+
+  private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
+    let res = await fetch(url);
+    let text = await res.text();
+
+    // the library only support \n
+    text = text.replaceAll("\r\n", "\n");
+
+    let cues = await ssp.parser("SRT" as ssp.Format, text);
+
+    return cues.map(
+      (cue) =>
+        ({
+          index: cue.sequence,
+          start: cue.startTime.totals.inSeconds,
+          end: cue.endTime.totals.inSeconds,
+          duration:
+            cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
+          text: cue.text.join(" "),
+        } as SubtitleLine)
+    );
+  }
+
+  private onMediaStart() {
+    this._mediaRef.playbackRate = this._store.options.playbackRate;
+  }
+
+  private onMediaTimeUpdate() {
+    let currentTime = this._mediaRef.currentTime;
+    let currentLine = this._store.currentLineIndex
+      ? this._store.lines[this._store.currentLineIndex]
+      : null;
+
+    if (
+      currentLine &&
+      currentTime >= currentLine.start &&
+      currentTime <= currentLine.end
+    ) {
+      // still playing the same line
+      return;
+    }
+
+    // Fine the current line
+    // TODO: better line search
+
+    let line = this._store.lines.find(
+      (line) => currentTime >= line.start && currentTime <= line.end
+    );
+
+    if (line) {
+      this.selectLine(line.index, false);
+    }
+  }
+
+  private onMediaError() {
+    toast.error("Unable to load the media.", ToastErrorOptions);
+  }
+
+  public setNavigator(navigator: Navigator) {
+    this._navigator = navigator;
+  }
+
+  public setMediaRef(mediaRef: HTMLMediaElement) {
+    this._mediaRef = mediaRef;
+
+    this._mediaRef.addEventListener("loadstart", () => {
+      this.onMediaStart();
+    });
+    this._mediaRef.addEventListener("timeupdate", () => {
+      this.onMediaTimeUpdate();
+    });
+    this._mediaRef.addEventListener("error", () => {
+      this.onMediaError();
+    });
+  }
+
+  public async startPractice(
+    isVideo: boolean,
+    sourceUrl: string,
+    subtitleUrl: string
+  ) {
+    try {
+      let lines = await this.parseSubtitle(subtitleUrl);
+
+      this._setStore(
+        produce((store) => {
+          store.isVideo = isVideo;
+          store.sourceUrl = sourceUrl;
+          store.lines = lines;
+          store.currentLineIndex = null;
+        })
+      );
+
+      this.navToPractice();
+    } catch (error) {
+      toast.error("Unable to load the subtitle file.", ToastErrorOptions);
+    }
+  }
+
+  public navToStart() {
+    this._navigator("/");
+  }
+
+  public navToPractice() {
+    this._navigator("/practice");
+  }
+
+  public navToResource() {
+    this._navigator("/resource");
+  }
+
+  public async useDemo(type: ResourceType) {
+    this.startPractice(
+      type == "video",
+      `${import.meta.env.BASE_URL}demos/${
+        type == "video" ? "video.mp4" : "audio.mp3"
+      }`,
+      `${import.meta.env.BASE_URL}demos/${type}.srt`
+    );
+  }
+
+  public async updatePlaybackRate(playbackRate: number) {
+    this._mediaRef.playbackRate = playbackRate;
+    this.updateOption("playbackRate", playbackRate);
+  }
+
+  public async updateOption<O extends keyof AppStoreOptions>(
+    option: O,
+    value: AppStoreOptions[O]
+  ) {
+    this._setStore("options", option, value);
+    localStorage.setItem(`option:${option}`, JSON.stringify(value));
+  }
+
+  public selectLine(index: number, updateTime: boolean = true) {
+    this._setStore("currentLineIndex", index);
+    if (index != null) {
+      let line = this._store.lines[index];
+
+      if (updateTime) {
+        this._mediaRef.currentTime = line.start;
+      }
+    }
+  }
+  public unselectLine() {
+    this._setStore("currentLineIndex", null);
+  }
+
+  public selectPreviousLine() {
+    if (this._store.currentLineIndex == null) {
+      this.selectLine(0);
+    } else if (this._store.currentLineIndex > 0) {
+      this.selectLine(this._store.currentLineIndex - 1);
+    }
+  }
+
+  public selectNextLine() {
+    if (this._store.currentLineIndex == null) {
+      this.selectLine(0);
+    } else if (this._store.currentLineIndex < this._store.lines.length) {
+      this.selectLine(this._store.currentLineIndex + 1);
+    }
+  }
+
+  public playSelectLine() {
+    this.playLine(this._store.lines[this._store.currentLineIndex || 0]);
+  }
+
+  public playSelectLineRecord() {
+    if (this._store.currentLineIndex != null) {
+      this.playLineRecord(this._store.lines[this._store.currentLineIndex]);
+    }
+  }
+
+  public recordSelectLine() {
+    if (this._store.currentLineIndex != null) {
+      this.recordLine(this._store.lines[this._store.currentLineIndex]);
+    }
+  }
+
+  public async playLine(line: SubtitleLine, lowVolume: boolean = false) {
+    clearTimeout(this._playTimeoutId);
+
+    this._mediaRef.currentTime = line.start;
+
+    let originVolume: number;
+    if (lowVolume) {
+      originVolume = this._mediaRef.volume;
+      this._mediaRef.volume = 0.1;
+    }
+
+    await this._mediaRef.play();
+
+    let duration =
+      line.duration * PlaybackEffects[this._mediaRef.playbackRate] * 1000;
+
+    this._playTimeoutId = setTimeout(() => {
+      if (!this._mediaRef.paused) {
+        if (lowVolume) {
+          this._mediaRef.volume = originVolume;
+        }
+
+        this._mediaRef.pause();
+      }
+    }, duration);
+  }
+
+  public async playLineRecord(line: SubtitleLine) {
+    if (!line.record) {
+      return;
+    }
+
+    this._audioService.play(line.record);
+  }
+
+  public recordLine(line: SubtitleLine) {
+    if (this._store.isRecording) {
+      return;
+    }
+
+    // no more than line's duration * 1.5 seconds
+    let maxDuration =
+      line.duration * PlaybackEffects[this._mediaRef.playbackRate] * 1500;
+
+    this._audioService.record(maxDuration, (record) => {
+      this._setStore("lines", line.index, "record", record);
+    });
+  }
+
+  public stopRecord() {
+    this._audioService?.stop();
+  }
+
+  public async exportRecord() {
+    this._audioService.export(
+      this._store.lines.map((l) => l.record).filter((r) => r)
+    );
+  }
+}
