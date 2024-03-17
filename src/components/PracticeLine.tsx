@@ -1,19 +1,33 @@
-import { createMemo, JSXElement, Show } from "solid-js";
+import { createMemo, createSignal, JSXElement, Show } from "solid-js";
 
 import { useService } from "@/service";
 
 import Button from "./Button";
+import RecordButton from "./RecordButton";
 
 export default function PracticeLine(): JSXElement {
   let service = useService();
+  let [domainData, setDomainData] = createSignal<number[]>();
+
   let line = createMemo(
     () => service.store.lines[service.store.currentLineIndex]
   );
+
+  service.onDomainDataAvailable = setDomainData;
+
+  let onRecord = () => {
+    if (service.store.isRecording) {
+      service.stopRecord();
+    } else {
+      service.recordSelectLine();
+    }
+  };
 
   return (
     <div class="grid grid-cols-12">
       <div class="">
         <button
+          title="go to previous (Left Arrow)"
           class="underline hover:text-gray-500"
           onClick={() => service.selectPreviousLine()}
         >
@@ -24,33 +38,17 @@ export default function PracticeLine(): JSXElement {
         <div>{line().text}</div>
         <div>
           <Button
+            title="play (Space)"
             onClick={() => {
               service.playLine(line());
             }}
           >
             play
           </Button>
-          <Show when={!service.store.isRecording}>
-            <Button
-              onClick={() => {
-                service.recordLine(line());
-              }}
-            >
-              record
-            </Button>
-          </Show>
-          <Show when={service.store.isRecording}>
-            <Button
-              type="alert"
-              onClick={() => {
-                service.stopRecord();
-              }}
-            >
-              stop
-            </Button>
-          </Show>
+         
           <Show when={line().record}>
             <Button
+              title="play recording (Ctrl + Space)"
               onClick={() => {
                 service.playLineRecord(line());
               }}
@@ -59,9 +57,17 @@ export default function PracticeLine(): JSXElement {
             </Button>
           </Show>
         </div>
+        <div>
+          <RecordButton
+            isRecording={service.store.isRecording}
+            domainData={domainData()}
+            onClick={onRecord}
+          />
+        </div>
       </div>
       <div>
         <button
+          title="go to next line (Right Arrow)"
           class="underline hover:text-gray-500"
           onClick={() => service.selectNextLine()}
         >

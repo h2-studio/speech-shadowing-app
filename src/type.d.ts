@@ -1,6 +1,7 @@
 interface AppStoreOptions {
   playLineWhileRecording: boolean;
   playbackRate: number;
+  autoStopRecording:boolean;
 }
 
 interface AppStore {
@@ -21,9 +22,6 @@ interface SubtitleLine {
   duration: number;
   text: string;
   record: AudioBuffer;
-  // recordBlobUrl: string;
-  // isRecording: boolean;
-  // isPlaying: boolean;
 }
 
 interface ResourceList {

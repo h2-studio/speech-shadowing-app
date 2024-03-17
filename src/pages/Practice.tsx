@@ -8,7 +8,7 @@ import PracticeLine from "../components/PracticeLine";
 export default function Practice(): JSXElement {
   let service = useService();
 
-  let onKeyEvent = (e: KeyboardEvent) => {    
+  let onKeyEvent = (e: KeyboardEvent) => {
     e.preventDefault();
 
     switch (e.code) {
@@ -24,7 +24,11 @@ export default function Practice(): JSXElement {
         service.unselectLine();
         break;
       case "Enter":
-        service.recordSelectLine();
+        if (service.store.isRecording) {
+          service.stopRecord();
+        } else {
+          service.recordSelectLine();
+        }
         break;
       case "Space":
         if (e.ctrlKey) {
@@ -88,6 +92,19 @@ export default function Practice(): JSXElement {
             checked={service.store.options.playLineWhileRecording}
           />
         </span>
+        <span class="mx-2">
+          auto stop recoding{" "}
+          <input
+            type="checkbox"
+            onClick={() => {
+              service.updateOption(
+                "autoStopRecording",
+                !service.store.options.autoStopRecording
+              );
+            }}
+            checked={service.store.options.autoStopRecording}
+          />
+        </span>
         <span>
           , rate:{" "}
           <select
@@ -129,6 +146,7 @@ export default function Practice(): JSXElement {
             <div class="text-right">
               <button
                 type="button"
+                title="end practice (Esc)"
                 class="underline hover:text-gray-500"
                 onClick={() => service.unselectLine()}
               >

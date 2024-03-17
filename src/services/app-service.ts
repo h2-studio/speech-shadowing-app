@@ -15,11 +15,20 @@ export class AppService {
   private _playTimeoutId: number;
   private _audioService: AudioService;
 
+  public get onDomainDataAvailable() {
+    return this._audioService.onDomainDataAvailable;
+  }
+
+  public set onDomainDataAvailable(fn: (data: number[]) => void) {
+    this._audioService.onDomainDataAvailable = fn;
+  }
+
   public get store() {
     return this._store;
   }
 
   constructor() {
+    // TODO: better load options
     let stores = createStore({
       isVideo: false,
       sourceUrl: "",
@@ -30,6 +39,9 @@ export class AppService {
         ),
         playbackRate:
           JSON.parse(localStorage.getItem("option:playbackRate")) || 1,
+        autoStopRecording: JSON.parse(
+          localStorage.getItem("option:autoStopRecording")
+        ),
       },
       isRecording: false,
     } as AppStore);
@@ -41,6 +53,7 @@ export class AppService {
     this._audioService.onStateUpdate = (isRecording) => {
       this._setStore("isRecording", isRecording);
     };
+    this._audioService.autoStopRecording = this._store.options.autoStopRecording;
   }
 
   private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
@@ -174,6 +187,10 @@ export class AppService {
   ) {
     this._setStore("options", option, value);
     localStorage.setItem(`option:${option}`, JSON.stringify(value));
+
+    if (option == "autoStopRecording") {
+      this._audioService.autoStopRecording = value as boolean;
+    }
   }
 
   public selectLine(index: number, updateTime: boolean = true) {
@@ -262,11 +279,7 @@ export class AppService {
       return;
     }
 
-    // no more than line's duration * 1.5 seconds
-    let maxDuration =
-      line.duration * PlaybackEffects[this._mediaRef.playbackRate] * 1500;
-
-    this._audioService.record(maxDuration, (record) => {
+    this._audioService.record((record) => {
       this._setStore("lines", line.index, "record", record);
     });
   }

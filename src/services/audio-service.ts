@@ -2,8 +2,8 @@ import Crunker from "crunker";
 const DomainLength = 20;
 const DomainInterval = 50;
 const LowDomainThreshold = DomainLength * 0.9;
-const MinLowDomain = 120;
-const MaxLowDomain = 136;
+const MinLowDomain = 124;
+const MaxLowDomain = 132;
 const FFTSize = 128;
 
 export class AudioService {
@@ -11,7 +11,9 @@ export class AudioService {
   private _ctx: AudioContext;
   private _maxDurationTimeoutId: number;
   private _analyzeIntervalId: number;
+  public autoStopRecording: boolean;
   public onStateUpdate: (isRecording: boolean) => void;
+  public onDomainDataAvailable: (data: number[]) => void;
 
   private get context(): AudioContext {
     if (this._ctx == null) {
@@ -45,25 +47,31 @@ export class AudioService {
       if (avgDomains.length > DomainLength) {
         avgDomains.shift();
 
-        let lowDomainCount = 0;
+        if (this.autoStopRecording) {
+          let lowDomainCount = 0;
 
-        for (const i of avgDomains) {
-          if (i > MinLowDomain && i < MaxLowDomain) {
-            lowDomainCount++;
+          for (const i of avgDomains) {
+            if (i > MinLowDomain && i < MaxLowDomain) {
+              lowDomainCount++;
+            }
+          }
+
+          if (lowDomainCount > LowDomainThreshold) {
+            this.stop();
+            // console.log("Stop recording at low domain", avgDomains);
           }
         }
+      }
 
-        if (lowDomainCount > LowDomainThreshold) {
-          this.stop();
-          // console.log("Stop recording at low domain", avgDomains);
-        }
+      if (this.onDomainDataAvailable) {
+        this.onDomainDataAvailable([...avgDomains]);
       }
     };
 
     this._analyzeIntervalId = setInterval(analyze, DomainInterval);
   }
 
-  public record(maxDuration: number, callback: (result: AudioBuffer) => void) {
+  public record(callback: (result: AudioBuffer) => void) {
     navigator.mediaDevices
       .getUserMedia({
         audio: true,
@@ -92,11 +100,6 @@ export class AudioService {
 
         this._recorder.start();
         this.startAnalyze();
-
-        // stop at maxDuration
-        this._maxDurationTimeoutId = setTimeout(() => {
-          this.stop();
-        }, maxDuration);
       });
   }
 

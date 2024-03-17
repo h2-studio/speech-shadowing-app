@@ -3,6 +3,7 @@ import { ParentProps, JSXElement } from "solid-js";
 interface Props {
   type?: "primary" | "alert";
   class?: string;
+  title?: string;
   onClick?: () => void;
 }
 
@@ -23,7 +24,7 @@ export default function Button(props: ParentProps<Props>): JSXElement {
   }
 
   return (
-    <button type="button" class={cssClasses.join(" ")} onClick={props.onClick}>
+    <button type="button" title={props.title} class={cssClasses.join(" ")} onClick={props.onClick}>
       {props.children}
     </button>
   );
