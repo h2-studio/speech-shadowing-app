@@ -5,3 +5,8 @@
 a.default {
   @apply underline hover:text-gray-500;
 }
+
+.logo {
+  font-family: "Gilroy-Bold", sans-serif;
+  color: #ff4500;
+}

@@ -25,7 +25,7 @@ export default function Root(props: ParentProps): JSXElement {
   return (
     <>
       <Header />
-      {props.children}
+      <div class="max-w-screen-lg mx-2 lg:mx-auto">{props.children}</div>
       <Toaster />
     </>
   );

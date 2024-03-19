@@ -14,15 +14,18 @@ export default function Practice(): JSXElement {
     switch (e.code) {
       case "ArrowLeft":
       case "ArrowUp":
+      case "KeyA":
         service.selectPreviousLine();
         break;
       case "ArrowRight":
       case "ArrowDown":
+      case "KeyD":
         service.selectNextLine();
         break;
       case "Escape":
         service.unselectLine();
         break;
+      case "KeyQ":
       case "Enter":
         if (service.store.isRecording) {
           service.stopRecord();
@@ -30,12 +33,16 @@ export default function Practice(): JSXElement {
           service.recordSelectLine();
         }
         break;
+      case "KeyW":
       case "Space":
         if (e.ctrlKey) {
           service.playSelectLineRecord();
         } else {
           service.playSelectLine();
         }
+        break;
+      case "KeyS":
+        service.playSelectLineRecord();
         break;
     }
 

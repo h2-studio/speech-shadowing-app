@@ -27,7 +27,7 @@ export default function PracticeLine(): JSXElement {
     <div class="grid grid-cols-12">
       <div class="">
         <button
-          title="go to previous (Left Arrow)"
+          title="go to previous (Left Arrow, A)"
           class="underline hover:text-gray-500"
           onClick={() => service.selectPreviousLine()}
         >
@@ -38,7 +38,7 @@ export default function PracticeLine(): JSXElement {
         <div>{line().text}</div>
         <div>
           <Button
-            title="play (Space)"
+            title="play (Space, W)"
             onClick={() => {
               service.playLine(line());
             }}
@@ -48,7 +48,7 @@ export default function PracticeLine(): JSXElement {
          
           <Show when={line().record}>
             <Button
-              title="play recording (Ctrl + Space)"
+              title="play recording (Ctrl + Space, S)"
               onClick={() => {
                 service.playLineRecord(line());
               }}
@@ -67,7 +67,7 @@ export default function PracticeLine(): JSXElement {
       </div>
       <div>
         <button
-          title="go to next line (Right Arrow)"
+          title="go to next line (Right Arrow, D)"
           class="underline hover:text-gray-500"
           onClick={() => service.selectNextLine()}
         >

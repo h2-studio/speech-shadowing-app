@@ -1,5 +1,5 @@
 import Crunker from "crunker";
-const DomainLength = 20;
+const DomainLength = 30;
 const DomainInterval = 50;
 const LowDomainThreshold = DomainLength * 0.9;
 const MinLowDomain = 124;
@@ -56,9 +56,11 @@ export class AudioService {
             }
           }
 
-          if (lowDomainCount > LowDomainThreshold) {
+          if (lowDomainCount >= LowDomainThreshold) {
             this.stop();
-            // console.log("Stop recording at low domain", avgDomains);
+            if (import.meta.hot) {
+              console.log("Stop recording at low domains", avgDomains);
+            }
           }
         }
       }
