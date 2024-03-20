@@ -1,7 +1,7 @@
 import Crunker from "crunker";
-const DomainLength = 30;
+const DomainLength = 20;
 const DomainInterval = 50;
-const LowDomainThreshold = DomainLength * 0.9;
+const LowDomainThreshold = DomainLength * 1;
 const MinLowDomain = 124;
 const MaxLowDomain = 132;
 const FFTSize = 128;

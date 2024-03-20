@@ -8,7 +8,7 @@ import { Navigator } from "@solidjs/router";
 import { AudioService } from "./audio-service";
 
 export class AppService {
-  private _mediaRef: HTMLMediaElement;
+  private _videoRef: HTMLVideoElement;
   private _store: AppStore;
   private _setStore: SetStoreFunction<AppStore>;
   private _navigator: Navigator;
@@ -30,7 +30,6 @@ export class AppService {
   constructor() {
     // TODO: better load options
     let stores = createStore({
-      isVideo: false,
       sourceUrl: "",
       lines: [],
       options: {
@@ -53,7 +52,8 @@ export class AppService {
     this._audioService.onStateUpdate = (isRecording) => {
       this._setStore("isRecording", isRecording);
     };
-    this._audioService.autoStopRecording = this._store.options.autoStopRecording;
+    this._audioService.autoStopRecording =
+      this._store.options.autoStopRecording;
   }
 
   private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
@@ -78,12 +78,23 @@ export class AppService {
     );
   }
 
-  private onMediaStart() {
-    this._mediaRef.playbackRate = this._store.options.playbackRate;
+  private onMediaLoaded() {
+    // update elements
+
+    this._videoRef.playbackRate = this._store.options.playbackRate;
+    // use the height to detect it is video or audio
+    if (this._videoRef.videoHeight == 0) {
+      // show control on video
+      this._videoRef.classList.add("max-h-10");
+      this._videoRef.classList.remove("max-h-80");
+    } else {
+      this._videoRef.classList.add("max-h-80");
+      this._videoRef.classList.remove("max-h-10");
+    }
   }
 
   private onMediaTimeUpdate() {
-    let currentTime = this._mediaRef.currentTime;
+    let currentTime = this._videoRef.currentTime;
     let currentLine = this._store.currentLineIndex
       ? this._store.lines[this._store.currentLineIndex]
       : null;
@@ -117,31 +128,27 @@ export class AppService {
     this._navigator = navigator;
   }
 
-  public setMediaRef(mediaRef: HTMLMediaElement) {
-    this._mediaRef = mediaRef;
+  public setMediaRef(mediaRef: HTMLVideoElement) {
+    this._videoRef = mediaRef;
+    this._videoRef.disablePictureInPicture = true;
 
-    this._mediaRef.addEventListener("loadstart", () => {
-      this.onMediaStart();
+    this._videoRef.addEventListener("loadedmetadata", () => {
+      this.onMediaLoaded();
     });
-    this._mediaRef.addEventListener("timeupdate", () => {
+    this._videoRef.addEventListener("timeupdate", () => {
       this.onMediaTimeUpdate();
     });
-    this._mediaRef.addEventListener("error", () => {
+    this._videoRef.addEventListener("error", () => {
       this.onMediaError();
     });
   }
 
-  public async startPractice(
-    isVideo: boolean,
-    sourceUrl: string,
-    subtitleUrl: string
-  ) {
+  public async startPractice(sourceUrl: string, subtitleUrl: string) {
     try {
       let lines = await this.parseSubtitle(subtitleUrl);
 
       this._setStore(
         produce((store) => {
-          store.isVideo = isVideo;
           store.sourceUrl = sourceUrl;
           store.lines = lines;
           store.currentLineIndex = null;
@@ -168,7 +175,6 @@ export class AppService {
 
   public async useDemo(type: ResourceType) {
     this.startPractice(
-      type == "video",
       `${import.meta.env.BASE_URL}demos/${
         type == "video" ? "video.mp4" : "audio.mp3"
       }`,
@@ -177,7 +183,7 @@ export class AppService {
   }
 
   public async updatePlaybackRate(playbackRate: number) {
-    this._mediaRef.playbackRate = playbackRate;
+    this._videoRef.playbackRate = playbackRate;
     this.updateOption("playbackRate", playbackRate);
   }
 
@@ -199,7 +205,7 @@ export class AppService {
       let line = this._store.lines[index];
 
       if (updateTime) {
-        this._mediaRef.currentTime = line.start;
+        this._videoRef.currentTime = line.start;
       }
     }
   }
@@ -242,26 +248,26 @@ export class AppService {
   public async playLine(line: SubtitleLine, lowVolume: boolean = false) {
     clearTimeout(this._playTimeoutId);
 
-    this._mediaRef.currentTime = line.start;
+    this._videoRef.currentTime = line.start;
 
     let originVolume: number;
     if (lowVolume) {
-      originVolume = this._mediaRef.volume;
-      this._mediaRef.volume = 0.1;
+      originVolume = this._videoRef.volume;
+      this._videoRef.volume = 0.1;
     }
 
-    await this._mediaRef.play();
+    await this._videoRef.play();
 
     let duration =
-      line.duration * PlaybackEffects[this._mediaRef.playbackRate] * 1000;
+      line.duration * PlaybackEffects[this._videoRef.playbackRate] * 1000;
 
     this._playTimeoutId = setTimeout(() => {
-      if (!this._mediaRef.paused) {
+      if (!this._videoRef.paused) {
         if (lowVolume) {
-          this._mediaRef.volume = originVolume;
+          this._videoRef.volume = originVolume;
         }
 
-        this._mediaRef.pause();
+        this._videoRef.pause();
       }
     }, duration);
   }

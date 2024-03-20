@@ -70,13 +70,9 @@ export default function Practice(): JSXElement {
           back
         </button>
       </div>
-      <div>
+      <div>        
         <video
           class="w-full"
-          classList={{
-            "max-h-80": service.store.isVideo,
-            "max-h-10": !service.store.isVideo,
-          }}
           ref={(ref) => service.setMediaRef(ref)}
           src={service.store.sourceUrl}
           controls
@@ -132,9 +128,6 @@ export default function Practice(): JSXElement {
           save records
         </Button>
       </div>
-
-      {/* TODO: sticky top */}
-
       <div class="py-4">
         <Show when={service.store.currentLineIndex == null}>
           <For each={service.store.lines}>

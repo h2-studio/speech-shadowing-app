@@ -15,7 +15,6 @@ export default function Root(props: ParentProps): JSXElement {
 
     if (query.has("sourceUrl") && query.has("subtitleUrl")) {
       service.startPractice(
-        query.get("type") == "video",
         query.get("sourceUrl"),
         query.get("subtitleUrl")
       );

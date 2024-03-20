@@ -10,3 +10,7 @@ a.default {
   font-family: "Gilroy-Bold", sans-serif;
   color: #ff4500;
 }
+
+video::-webkit-media-controls-fullscreen-button {
+  display: none;
+}

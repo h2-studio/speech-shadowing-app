@@ -61,7 +61,6 @@ export default function Resource(): JSXElement {
                       : item.subtitleUrl;
 
                     service.startPractice(
-                      item.type == "video",
                       item.sourceUrl,
                       url
                     );

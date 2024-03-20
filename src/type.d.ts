@@ -5,7 +5,6 @@ interface AppStoreOptions {
 }
 
 interface AppStore {
-  isVideo: boolean;
   sourceUrl: string;
   lines: SubtitleLine[];
   currentLineIndex: number;

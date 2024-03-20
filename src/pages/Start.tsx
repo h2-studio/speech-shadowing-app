@@ -30,14 +30,11 @@ export default function Start(): JSXElement {
   let start = () => {
     let sourceUrl = "";
     let subtitleUrl = "";
-    let isSourceVideo = false;
 
     if (sourceFileInputRef.files?.length) {
       sourceUrl = URL.createObjectURL(sourceFileInputRef.files[0]);
-      isSourceVideo = sourceFileInputRef.files[0].name.endsWith(".mp4");
     } else if (sourceUrlInputRef.value) {
       sourceUrl = sourceUrlInputRef.value;
-      isSourceVideo = sourceUrl.endsWith(".mp4");
     }
 
     if (subtitleFileInputRef.files?.length) {
@@ -47,7 +44,7 @@ export default function Start(): JSXElement {
     }
 
     if (sourceUrl && subtitleUrl) {
-      service.startPractice(isSourceVideo, sourceUrl, subtitleUrl);
+      service.startPractice(sourceUrl, subtitleUrl);
     } else {
       toast.error("please provide resources", ToastErrorOptions);
     }
