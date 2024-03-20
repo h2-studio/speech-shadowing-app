@@ -41,6 +41,9 @@ export class AppService {
         autoStopRecording: JSON.parse(
           localStorage.getItem("option:autoStopRecording")
         ),
+        autoPlay: JSON.parse(
+          localStorage.getItem("option:autoPlay")
+        ),
       },
       isRecording: false,
     } as AppStore);
@@ -206,6 +209,9 @@ export class AppService {
 
       if (updateTime) {
         this._videoRef.currentTime = line.start;
+        if (this._store.options.autoPlay) {
+          this.playSelectLine();
+        }
       }
     }
   }
@@ -287,6 +293,9 @@ export class AppService {
 
     this._audioService.record((record) => {
       this._setStore("lines", line.index, "record", record);
+      if (this._store.options.autoPlay) {
+        this.playSelectLineRecord();
+      }
     });
   }
 

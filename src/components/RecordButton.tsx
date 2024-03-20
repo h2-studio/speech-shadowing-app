@@ -47,9 +47,7 @@ export default function RecordButton(props: RecordButtonProps): JSXElement {
 
   return (
     <button
-      title={
-        props.isRecording ? "stop recoding (Enter, Q)" : "start recoding (Enter, Q)"
-      }
+      title={(props.isRecording ? "stop" : "start") + " recording (Enter, Q)"}
       type="button"
       class="size-40 p-2 border-2 rounded-full"
       classList={{

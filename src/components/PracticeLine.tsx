@@ -38,7 +38,7 @@ export default function PracticeLine(): JSXElement {
         <div>{line().text}</div>
         <div>
           <Button
-            title="play (Space, W)"
+            title="play (Up Arrow, W)"
             onClick={() => {
               service.playLine(line());
             }}
@@ -48,7 +48,7 @@ export default function PracticeLine(): JSXElement {
          
           <Show when={line().record}>
             <Button
-              title="play recording (Ctrl + Space, S)"
+              title="play recording (Down Arrow, S)"
               onClick={() => {
                 service.playLineRecord(line());
               }}

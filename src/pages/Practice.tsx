@@ -13,12 +13,10 @@ export default function Practice(): JSXElement {
 
     switch (e.code) {
       case "ArrowLeft":
-      case "ArrowUp":
       case "KeyA":
         service.selectPreviousLine();
         break;
       case "ArrowRight":
-      case "ArrowDown":
       case "KeyD":
         service.selectNextLine();
         break;
@@ -34,13 +32,10 @@ export default function Practice(): JSXElement {
         }
         break;
       case "KeyW":
-      case "Space":
-        if (e.ctrlKey) {
-          service.playSelectLineRecord();
-        } else {
-          service.playSelectLine();
-        }
+      case "ArrowUp":
+        service.playSelectLine();
         break;
+      case "ArrowDown":
       case "KeyS":
         service.playSelectLineRecord();
         break;
@@ -70,7 +65,7 @@ export default function Practice(): JSXElement {
           back
         </button>
       </div>
-      <div>        
+      <div>
         <video
           class="w-full"
           ref={(ref) => service.setMediaRef(ref)}
@@ -106,6 +101,19 @@ export default function Practice(): JSXElement {
               );
             }}
             checked={service.store.options.autoStopRecording}
+          />
+        </span>
+        <span class="mx-2">
+          auto play{" "}
+          <input
+            type="checkbox"
+            onClick={() => {
+              service.updateOption(
+                "autoPlay",
+                !service.store.options.autoPlay
+              );
+            }}
+            checked={service.store.options.autoPlay}
           />
         </span>
         <span>
