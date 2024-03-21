@@ -2,13 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+.font-gilroy {
+  font-family: "Gilroy-Bold", sans-serif;
+}
+
+.font-gilroy-medium {
+  font-family: "Gilroy-Medium", sans-serif;
+}
+
+.font-gilroy-heavy {
+  font-family: "Gilroy-Heavy", sans-serif;
+}
+
+body {
+  @apply font-gilroy-medium mb-10;
+  background-color: #f4f4f4;
+  color: #3d3b37;
+}
+
+.font-title {
+  @apply font-gilroy-heavy;
+}
+
+.font-text {
+  @apply font-gilroy-medium;
+}
+
 a.default {
   @apply underline hover:text-gray-500;
 }
 
 .logo {
-  font-family: "Gilroy-Bold", sans-serif;
-  color: #ff4500;
+  @apply font-gilroy text-primary;
+}
+
+.btn-primary {
+  @apply font-gilroy bg-primary rounded-2xl text-white;
 }
 
 video::-webkit-media-controls-fullscreen-button {
