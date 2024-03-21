@@ -7,6 +7,13 @@ import { Navigator } from "@solidjs/router";
 
 import { AudioService } from "./audio-service";
 
+class AppStoreOptionsImpl implements AppStoreOptions {
+  playLineWhileRecording: boolean = false;
+  playbackRate: number = 1;
+  autoPlay: boolean = true;
+  autoStopRecording:boolean = true;
+}
+
 export class AppService {
   private _videoRef: HTMLVideoElement;
   private _store: AppStore;
@@ -28,23 +35,10 @@ export class AppService {
   }
 
   constructor() {
-    // TODO: better load options
     let stores = createStore({
       sourceUrl: "",
       lines: [],
-      options: {
-        playLineWhileRecording: JSON.parse(
-          localStorage.getItem("option:playLineWhileRecording")
-        ),
-        playbackRate:
-          JSON.parse(localStorage.getItem("option:playbackRate")) || 1,
-        autoStopRecording: JSON.parse(
-          localStorage.getItem("option:autoStopRecording")
-        ),
-        autoPlay: JSON.parse(
-          localStorage.getItem("option:autoPlay")
-        ),
-      },
+      options: this.loadOptions(),
       isRecording: false,
     } as AppStore);
 
@@ -57,6 +51,20 @@ export class AppService {
     };
     this._audioService.autoStopRecording =
       this._store.options.autoStopRecording;
+  }
+
+  private loadOptions(): AppStoreOptions {
+    let options = new AppStoreOptionsImpl();
+
+    // load LocalStorage
+    for (let name of Object.getOwnPropertyNames(options)) {
+      let value = localStorage.getItem(`option:${name}`);
+      if (value != null) {
+        (options as any)[name] = JSON.parse(value);
+      }
+    }
+
+    return options;
   }
 
   private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
