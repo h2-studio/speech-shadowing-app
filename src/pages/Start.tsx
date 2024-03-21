@@ -58,17 +58,17 @@ export default function Start(): JSXElement {
 
         <div class="mt-5 border border-gray-400 p-4 rounded-md">
           <h3 class="text-2xl">
-            1. use resources from Speech-Shadowing-Resource repository
+            1. use resources from Repeat-Resource repository
           </h3>
 
           <p>
             You can use the resource from{" "}
             <a
               class="default"
-              href="https://github.com/h2-studio/speech-shadowing-resources"
+              href="https://github.com/h2-studio/repeat-resources"
               target="_blank"
             >
-              Speech-Shadowing-Resources
+              Repeat-Resources
             </a>{" "}
             which is a public repository storing shared resources.{" "}
             <b>You can also contribute resources as well!</b>

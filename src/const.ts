@@ -1,7 +1,7 @@
 import { ToastOptions } from "solid-toast";
 
 export const ResourceRepoUrl =
-  "https://raw.githubusercontent.com/h2-studio/speech-shadowing-resources/main";
+  "https://raw.githubusercontent.com/h2-studio/repeat-resources/main";
 
 export const ResourceJsonUrl = `${ResourceRepoUrl}/resources.json`;
 

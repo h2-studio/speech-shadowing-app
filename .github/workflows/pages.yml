@@ -1,5 +1,4 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy to Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -40,7 +39,7 @@ jobs:
       - name: Build
         run: |
           npm install
-          npm run build -- --base /speech-shadowing-app/
+          npm run build -- --base /repeat-app/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

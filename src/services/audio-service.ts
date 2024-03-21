@@ -132,7 +132,7 @@ export class AudioService {
 
       // TODO: better export name
       let date = new Date().toISOString().substring(0, 10);
-      ele.download = `speech-shadowing-record-${date}.mp3`;
+      ele.download = `repeat-${date}.mp3`;
       ele.click();
     }
 
