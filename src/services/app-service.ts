@@ -300,8 +300,11 @@ export class AppService {
 
   public recordLine(line: SubtitleLine) {
     if (this._store.isRecording) {
+      //TODO: stop previous record
       return;
     }
+
+    // TODO: stop if playing
 
     this._audioService.record((record) => {
       this._setStore("lines", line.index, "record", record);

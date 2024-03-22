@@ -57,7 +57,7 @@ export default function Start(): JSXElement {
               USE RESOURCES FROM RE:REPEAT REPOSITORY
             </p>
             <p>
-              You can use and contribute to
+              <span>You can use and contribute to </span>
               <a
                 class="default"
                 href="https://github.com/team-h2/repeat-resources"
@@ -65,7 +65,7 @@ export default function Start(): JSXElement {
               >
                 Re:peat-Resources
               </a>
-              , a public repository for shared resources.
+              <span>, a public repository for shared resources.</span>
             </p>
           </div>
 
@@ -119,82 +119,13 @@ export default function Start(): JSXElement {
           </div>
 
           <div class="absolute bottom-8 left-0 right-0 text-center">
-            <button
-              type="button"
-              class="btn-primary-sm"
-              onClick={start}
-            >
+            <button type="button" class="btn-primary-sm" onClick={start}>
               LOAD RESOURCES <i class="fa-solid fa-play ms-2"></i>
             </button>
           </div>
         </div>
       </div>
-      <div>
-        <h3 class="mt-5 text-2xl">Demo</h3>
 
-        <div class="mt-5 border border-gray-400 p-4 rounded-md">
-          <p>
-            if you just want to try the app, the easiest way is use these demo
-            resources
-          </p>
-
-          <div class="columns-2 mx-10">
-            <div>
-              <button
-                type="button"
-                class="w-full p-1 border bg-slate-400 hover:bg-slate-500"
-                onClick={() => service.useDemo("audio")}
-              >
-                try the demo audio file
-              </button>
-            </div>
-            <div>
-              <button
-                type="button"
-                class="w-full p-1 border bg-slate-400 hover:bg-slate-500"
-                onClick={() => service.useDemo("video")}
-              >
-                try the demo video file
-              </button>
-            </div>
-          </div>
-          <p>
-            The demo{" "}
-            <a
-              href="https://learningenglish.voanews.com/a/offering-coffee-and-tea/7277846.html"
-              class="default"
-              target="_blank"
-            >
-              audio
-            </a>{" "}
-            and{" "}
-            <a
-              href="https://learningenglish.voanews.com/a/7516761.html"
-              class="default"
-              target="_blank"
-            >
-              video
-            </a>{" "}
-            were downloaded from{" "}
-            <a
-              href="https://learningenglish.voanews.com/"
-              target="_blank"
-              class="default"
-            >
-              VOA Learning English
-            </a>{" "}
-            and we created the subtitles on{" "}
-            <a
-              href="https://github.com/SubtitleEdit/subtitleedit"
-              class="default"
-              target="_blank"
-            >
-              SubtitleEdit
-            </a>{" "}
-            manually.
-          </p>
-        </div>
-      </div>
       <h2 class="my-5 text-2xl">How to get resources</h2>
       <div class="my-5 border border-gray-400 p-4 rounded-md">
         <p>

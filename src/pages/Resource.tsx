@@ -14,6 +14,7 @@ import { useService } from "@/service";
 
 export default function Resource(): JSXElement {
   let service = useService();
+  // TODO: change to new structure
   let [resourceJson] = createResource<ResourceList>(async () =>
     (await fetch(ResourceJsonUrl)).json()
   );
