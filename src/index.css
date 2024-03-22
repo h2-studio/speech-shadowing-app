@@ -21,7 +21,7 @@ body {
 }
 
 .font-title {
-  @apply font-gilroy-heavy;
+  @apply font-gilroy-heavy tracking-wider;
 }
 
 .font-text {
@@ -35,11 +35,22 @@ a.default {
 .logo {
   @apply font-gilroy text-primary;
 }
+.btn-primary-base {
+  @apply inline-block font-gilroy bg-primary rounded-xl text-white hover:bg-primary-200 tracking-wider;
+}
 
 .btn-primary {
-  @apply font-gilroy bg-primary rounded-2xl text-white;
+  @apply btn-primary-base text-2xl px-8 py-4;
+}
+
+.btn-primary-sm {
+  @apply btn-primary-base text-lg px-6 py-3;
 }
 
 video::-webkit-media-controls-fullscreen-button {
   display: none;
+}
+
+.box-option {
+  @apply bg-gray-200 px-4 py-8 rounded-xl h-[500px];
 }

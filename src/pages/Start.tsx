@@ -6,9 +6,7 @@ import { useService } from "@/service";
 
 export default function Start(): JSXElement {
   let sourceFileInputRef!: HTMLInputElement;
-  let sourceUrlInputRef!: HTMLInputElement;
   let subtitleFileInputRef!: HTMLInputElement;
-  let subtitleUrlInputRef!: HTMLInputElement;
 
   let service = useService();
 
@@ -33,14 +31,10 @@ export default function Start(): JSXElement {
 
     if (sourceFileInputRef.files?.length) {
       sourceUrl = URL.createObjectURL(sourceFileInputRef.files[0]);
-    } else if (sourceUrlInputRef.value) {
-      sourceUrl = sourceUrlInputRef.value;
     }
 
     if (subtitleFileInputRef.files?.length) {
       subtitleUrl = URL.createObjectURL(subtitleFileInputRef.files[0]);
-    } else if (subtitleUrlInputRef.value) {
-      subtitleUrl = subtitleUrlInputRef.value;
     }
 
     if (sourceUrl && subtitleUrl) {
@@ -51,48 +45,54 @@ export default function Start(): JSXElement {
   };
 
   return (
-    <div class="text-center">
-      <div>
-        <h2 class="text-2xl">How to use this app</h2>
-        <p class="m-5">There are two ways to use this app.</p>
+    <section class="m-10">
+      <h2 class="text-4xl text-center font-title">How to use</h2>
 
-        <div class="mt-5 border border-gray-400 p-4 rounded-md">
-          <h3 class="text-2xl">
-            1. use resources from Repeat-Resource repository
-          </h3>
+      <div class="mt-10 grid xl:grid-cols-2 gap-14">
+        <div class="box-option relative">
+          <div class="text-center">
+            <h3 class="text-2xl font-title text-primary">OPTION 1:</h3>
 
-          <p>
-            You can use the resource from{" "}
-            <a
-              class="default"
-              href="https://github.com/h2-studio/repeat-resources"
-              target="_blank"
+            <p class="mt-4 text-lg font-title">
+              USE RESOURCES FROM RE:REPEAT REPOSITORY
+            </p>
+            <p>
+              You can use and contribute to
+              <a
+                class="default"
+                href="https://github.com/team-h2/repeat-resources"
+                target="_blank"
+              >
+                Re:peat-Resources
+              </a>
+              , a public repository for shared resources.
+            </p>
+          </div>
+
+          <div class="absolute bottom-8 left-0 right-0 text-center">
+            <button
+              type="button"
+              class="btn-primary-sm"
+              onClick={() => {
+                service.navToResource();
+              }}
             >
-              Repeat-Resources
-            </a>{" "}
-            which is a public repository storing shared resources.{" "}
-            <b>You can also contribute resources as well!</b>
-          </p>
-
-          <button
-            type="button"
-            class="w-full p-2 mt-4 bg-sky-400 hover:bg-sky-500"
-            onClick={() => {
-              service.navToResource();
-            }}
-          >
-            select resources
-          </button>
+              SELECT RESOURCES <i class="fa-solid fa-play ms-2"></i>
+            </button>
+          </div>
         </div>
-        <div class="mt-5 border border-gray-400 p-4 rounded-md">
-          <h3 class="text-2xl">
-            2. load an video or audio file form your computer or urls
-          </h3>
-          <p>
-            you can use a video(.mp4) file or an audio(.mp3) file and a
-            subtitle(.srt) file form other websites or from your computer.
-          </p>
-          <div class="my-5">
+
+        <div class="box-option relative">
+          <div class="text-center">
+            <h3 class="text-2xl font-title text-primary">OPTION 2:</h3>
+            <p class="mt-4 text-lg font-title">
+              LOAD A FILE FROM YOUR COMPUTER
+            </p>
+            <p>
+              You can use video(.mp4), audio(.mp3) and subtitle(.srt) files form
+              your computer.
+            </p>
+
             <button
               type="button"
               class="w-full p-1 bg-slate-400 hover:bg-slate-500"
@@ -104,19 +104,10 @@ export default function Start(): JSXElement {
                 ? sourceFileName()
                 : "select an .mp3 or .mp4 file from your computer"}
             </button>
-            <p>or</p>
-            <input
-              ref={sourceUrlInputRef}
-              type="text"
-              class="w-full border border-gray-800 p-1"
-              placeholder="input the url of an .mp3 or .mp4 file"
-            />
-          </div>
 
-          <div class="my-5">
             <button
               type="button"
-              class="w-full p-1 bg-slate-400 hover:bg-slate-500"
+              class="mt-2 w-full p-1 bg-slate-400 hover:bg-slate-500"
               onClick={() => {
                 subtitleFileInputRef.click();
               }}
@@ -125,26 +116,20 @@ export default function Start(): JSXElement {
                 ? subtitleFileName()
                 : "select an .srt file from your computer"}
             </button>
-            <p>or</p>
-            <input
-              ref={subtitleUrlInputRef}
-              type="text"
-              class="w-full border border-gray-800 p-1"
-              placeholder="input the url of .srt file"
-            />
           </div>
 
-          <div>
+          <div class="absolute bottom-8 left-0 right-0 text-center">
             <button
               type="button"
-              class="w-full p-1 bg-sky-400 hover:bg-sky-500"
+              class="btn-primary-sm"
               onClick={start}
             >
-              load resources
+              LOAD RESOURCES <i class="fa-solid fa-play ms-2"></i>
             </button>
           </div>
         </div>
-
+      </div>
+      <div>
         <h3 class="mt-5 text-2xl">Demo</h3>
 
         <div class="mt-5 border border-gray-400 p-4 rounded-md">
@@ -241,6 +226,6 @@ export default function Start(): JSXElement {
         accept=".srt"
         onchange={onAudioSubFileSelected}
       />
-    </div>
+    </section>
   );
 }

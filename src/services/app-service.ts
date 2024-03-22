@@ -172,8 +172,12 @@ export class AppService {
     }
   }
 
-  public navToStart() {
+  public navToHome() {
     this._navigator("/");
+  }
+
+  public navToStart() {
+    this._navigator("/start");
   }
 
   public navToPractice() {

@@ -9,7 +9,7 @@ export default function Header(): JSXElement {
         </a>
         <span class="self-center absolute right-0 ">
           <a
-            href="https://github.com/h2-studio/repeat-app"
+            href="https://github.com/team-h2/repeat-app"
             target="_black"
             class="text-3xl text-white"
           >
