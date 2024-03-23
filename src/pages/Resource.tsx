@@ -4,11 +4,9 @@ import {
   JSXElement,
   Match,
   onMount,
-  Show,
   Switch,
 } from "solid-js";
 
-import { ResourceRepoUrl } from "@/const";
 import { useService } from "@/service";
 
 export default function Resource(): JSXElement {
@@ -58,33 +56,37 @@ export default function Resource(): JSXElement {
       </div>
 
       <Switch>
-        <Match when={isLoading()}>
-          <Show when={isLoading}>Loading...</Show>
-        </Match>
+        <Match when={isLoading()}>Loading...</Match>
         {/* for resources */}
         <Match when={selectedCategory() != null}>
           <div>
             <div>{selectedCategory().title} </div>
-            <For each={selectedCategory().resources}>
-              {(item) => (
-                <div
-                  class="hover:bg-gray-500 p-6"
-                  onClick={() => {
-                    let url = item.subtitlePath
-                      ? `${ResourceRepoUrl}/${item.subtitlePath}`
-                      : item.subtitleUrl;
-
-                    service.startPractice(item.sourceUrl, url);
-                  }}
-                >
-                  type: {item.type}
-                  <br />
-                  title: {item.title}
-                  <br />
-                  duration: {item.duration}
-                </div>
-              )}
-            </For>
+            <div class="grid grid-cols-2">
+              {/* TODO: use fetch more */}
+              <For each={selectedCategory().resources}>
+                {(item) => (
+                  <div
+                    class="border border-gray-600 p-6 m-1 hover:bg-gray-600"
+                    onClick={() => {
+                      service.startPractice(
+                        item.sourceUrl,
+                        item.subtitleUrl ?? item.subtitlePath
+                      );
+                    }}
+                  >
+                    type: {item.type}
+                    <br />
+                    title: {item.title}
+                    <br />
+                    duration: {item.duration}
+                    <br />
+                    release date: {item.releasedDate}
+                    <br />
+                    last practice date: TODO
+                  </div>
+                )}
+              </For>
+            </div>
           </div>
         </Match>
 

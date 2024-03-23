@@ -1,8 +1,10 @@
 import { ResourceRepoUrl } from "@/const";
+import urlJoin from "url-join";
 
 export default class ResourceService {
   async fetchCategories(): Promise<ResourceCategory[]> {
-    let res = await fetch(`${ResourceRepoUrl}/categories.json`);
+    let url = urlJoin(ResourceRepoUrl, "categories.json");
+    let res = await fetch(url);
     let categories: ResourceCategory[] = await res.json();
 
     categories.forEach((c, i) => {
@@ -13,13 +15,14 @@ export default class ResourceService {
   }
 
   async fetchResources(path: string): Promise<Resource[]> {
-    let res = await fetch(`${ResourceRepoUrl}/${path}/resources.json`);
+    let url = urlJoin(ResourceRepoUrl, path, "resources.json");
+    let res = await fetch(url);
     let resources: Resource[] = await res.json();
 
     resources.forEach((r, i) => {
       r.index = i;
       if (r.subtitlePath) {
-        r.subtitlePath = path + r.subtitlePath;
+        r.subtitlePath = urlJoin(ResourceRepoUrl, path, r.subtitlePath);
       }
     });
 
