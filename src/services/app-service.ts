@@ -5,13 +5,14 @@ import toast from "solid-toast";
 import { PlaybackEffects, ToastErrorOptions } from "@/const";
 import { Navigator } from "@solidjs/router";
 
-import { AudioService } from "./audio-service";
+import AudioService from "./audio-service";
+import ResourceService from "./resource-service";
 
 class AppStoreOptionsImpl implements AppStoreOptions {
   playLineWhileRecording: boolean = false;
   playbackRate: number = 1;
   autoPlay: boolean = true;
-  autoStopRecording:boolean = true;
+  autoStopRecording: boolean = true;
 }
 
 export class AppService {
@@ -21,6 +22,7 @@ export class AppService {
   private _navigator: Navigator;
   private _playTimeoutId: number;
   private _audioService: AudioService;
+  private _resourceService: ResourceService;
 
   public get onDomainDataAvailable() {
     return this._audioService.onDomainDataAvailable;
@@ -44,6 +46,8 @@ export class AppService {
 
     this._store = stores[0];
     this._setStore = stores[1];
+
+    this._resourceService = new ResourceService();
 
     this._audioService = new AudioService();
     this._audioService.onStateUpdate = (isRecording) => {
@@ -322,5 +326,17 @@ export class AppService {
     this._audioService.export(
       this._store.lines.map((l) => l.record).filter((r) => r)
     );
+  }
+
+  public async loadResourceCategories(): Promise<void> {
+    let categories = await this._resourceService.fetchCategories();
+
+    this._setStore("categories", categories);
+  }
+
+  public async loadResources(category: ResourceCategory): Promise<void> {
+    let resources = await this._resourceService.fetchResources(category.path);
+
+    this._setStore("categories", category.index, "resources", resources);
   }
 }

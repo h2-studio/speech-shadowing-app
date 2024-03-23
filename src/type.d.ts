@@ -2,7 +2,7 @@ interface AppStoreOptions {
   playLineWhileRecording: boolean;
   playbackRate: number;
   autoPlay: boolean;
-  autoStopRecording:boolean;
+  autoStopRecording: boolean;
 }
 
 interface AppStore {
@@ -11,6 +11,7 @@ interface AppStore {
   currentLineIndex: number;
   options: AppStoreOptions;
   isRecording: boolean;
+  categories: ResourceCategory[];
 }
 
 type ResourceType = "audio" | "video";
@@ -24,11 +25,15 @@ interface SubtitleLine {
   record: AudioBuffer;
 }
 
-interface ResourceList {
-  [category: string]: Resource[];
+interface ResourceCategory {
+  index: number;
+  title: string;
+  path: string;
+  resources: Resource[];
 }
 
 interface Resource {
+  index: number;
   type: ResourceType;
   title: string;
   duration: string;

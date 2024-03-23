@@ -6,7 +6,7 @@ const MinLowDomain = 124;
 const MaxLowDomain = 132;
 const FFTSize = 128;
 
-export class AudioService {
+export default class AudioService {
   private _recorder: MediaRecorder;
   private _ctx: AudioContext;
   private _maxDurationTimeoutId: number;

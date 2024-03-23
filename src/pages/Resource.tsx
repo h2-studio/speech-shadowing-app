@@ -1,34 +1,43 @@
 import {
-  createEffect,
-  createResource,
   createSignal,
   For,
   JSXElement,
   Match,
+  onMount,
   Show,
   Switch,
 } from "solid-js";
 
-import { ResourceJsonUrl, ResourceRepoUrl } from "@/const";
+import { ResourceRepoUrl } from "@/const";
 import { useService } from "@/service";
 
 export default function Resource(): JSXElement {
   let service = useService();
-  // TODO: change to new structure
-  let [resourceJson] = createResource<ResourceList>(async () =>
-    (await fetch(ResourceJsonUrl)).json()
-  );
+  let [isLoading, setIsLoading] = createSignal(false);
+  let [selectedCategory, setSelectedCategory] =
+    createSignal<ResourceCategory>();
 
-  let [categories, setCategories] = createSignal<string[]>();
-  let [category, setCategory] = createSignal<string>();
-
-  createEffect(() => {
-    let json = resourceJson();
-
-    if (json != null) {
-      setCategories([...Object.getOwnPropertyNames(json)]);
+  onMount(() => {
+    if (service.store.categories == null) {
+      setIsLoading(true);
+      service.loadResourceCategories().finally(() => {
+        setIsLoading(false);
+      });
     }
   });
+
+  let onSelectCategory = async (category: ResourceCategory) => {
+    if (category.resources == null) {
+      setIsLoading(true);
+
+      service.loadResources(category).finally(() => {
+        setIsLoading(false);
+        setSelectedCategory(category);
+      });
+    } else {
+      setSelectedCategory(category);
+    }
+  };
 
   return (
     <>
@@ -37,8 +46,8 @@ export default function Resource(): JSXElement {
           type="button"
           class="underline hover:text-gray-700"
           onClick={() => {
-            if (category()){
-              setCategory(null);
+            if (selectedCategory()) {
+              setSelectedCategory(null);
             } else {
               service.navToStart();
             }
@@ -47,12 +56,16 @@ export default function Resource(): JSXElement {
           back
         </button>
       </div>
-      <Show when={resourceJson.loading}>Loading resource list</Show>
+
       <Switch>
-        <Match when={category() != null}>
+        <Match when={isLoading()}>
+          <Show when={isLoading}>Loading...</Show>
+        </Match>
+        {/* for resources */}
+        <Match when={selectedCategory() != null}>
           <div>
-            <div>{category()} </div>
-            <For each={resourceJson()[category()]}>
+            <div>{selectedCategory().title} </div>
+            <For each={selectedCategory().resources}>
               {(item) => (
                 <div
                   class="hover:bg-gray-500 p-6"
@@ -61,10 +74,7 @@ export default function Resource(): JSXElement {
                       ? `${ResourceRepoUrl}/${item.subtitlePath}`
                       : item.subtitleUrl;
 
-                    service.startPractice(
-                      item.sourceUrl,
-                      url
-                    );
+                    service.startPractice(item.sourceUrl, url);
                   }}
                 >
                   type: {item.type}
@@ -77,18 +87,20 @@ export default function Resource(): JSXElement {
             </For>
           </div>
         </Match>
-        <Match when={categories() != null}>
+
+        {/* for categories */}
+        <Match when={selectedCategory() == null}>
           <div class="text-lg">select a category:</div>
-          <div class="columns-2 mt-5">
-            <For each={categories()}>
-              {(item) => (
+          <div class="grid grid-cols-2">
+            <For each={service.store.categories}>
+              {(category) => (
                 <div
-                  class="border border-gray-600 p-6 hover:bg-gray-600"
+                  class="border border-gray-600 p-6 m-1 hover:bg-gray-600"
                   onclick={() => {
-                    setCategory(item);
+                    onSelectCategory(category);
                   }}
                 >
-                  {item}
+                  {category.title}
                 </div>
               )}
             </For>

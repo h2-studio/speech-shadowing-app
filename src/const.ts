@@ -3,8 +3,6 @@ import { ToastOptions } from "solid-toast";
 export const ResourceRepoUrl =
   "https://raw.githubusercontent.com/team-h2/repeat-resources/main";
 
-export const ResourceJsonUrl = `${ResourceRepoUrl}/resources.json`;
-
 export const ToastErrorOptions: ToastOptions = {
   style: {
     color: "white",
