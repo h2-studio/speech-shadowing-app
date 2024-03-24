@@ -109,6 +109,10 @@ export class AppService {
   }
 
   private onMediaTimeUpdate() {
+    if (this._videoRef.paused) {
+      return;
+    }
+
     let currentTime = this._videoRef.currentTime;
     let currentLine = this._store.currentLineIndex
       ? this._store.lines[this._store.currentLineIndex]
@@ -232,6 +236,8 @@ export class AppService {
     }
   }
   public unselectLine() {
+    // if video is not paused, onMediaTimeUpdate will update currentLineIndex
+    this._videoRef.pause();
     this._setStore("currentLineIndex", null);
   }
 

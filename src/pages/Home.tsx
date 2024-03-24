@@ -7,7 +7,7 @@ export default function Home(): JSXElement {
 
   return (
     <section class="m-10">
-      <p class="font-title text-6xl">
+      <p class="text-title text-6xl">
         RECORD YOURSELF,
         <br />
         READ OUT LOUD,

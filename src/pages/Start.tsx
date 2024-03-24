@@ -45,18 +45,18 @@ export default function Start(): JSXElement {
   };
 
   return (
-    <section class="m-10">
-      <h2 class="text-4xl text-center font-title">How to use</h2>
+    <section class="my-10">
+      <h2 class="text-4xl text-center text-title">HOW TO USE</h2>
 
-      <div class="mt-10 grid xl:grid-cols-2 gap-14">
+      <div class="mt-10 grid xl:grid-cols-2 gap-10">
         <div class="box-option relative">
-          <div class="text-center">
-            <h3 class="text-2xl font-title text-primary">OPTION 1:</h3>
+          <div class="grid place-items-center">
+            <h3 class="mt-8 text-2xl text-title text-primary">OPTION 1:</h3>
 
-            <p class="mt-4 text-lg font-title">
-              USE RESOURCES FROM RE:REPEAT REPOSITORY
+            <p class="mt-4 text-lg text-title">
+              USE RESOURCES FROM RE:REPEAT
             </p>
-            <p>
+            <p class="mt-2 max-w-96 text-lg text-center">
               <span>You can use and contribute to </span>
               <a
                 class="default"
@@ -69,7 +69,7 @@ export default function Start(): JSXElement {
             </p>
           </div>
 
-          <div class="absolute bottom-8 left-0 right-0 text-center">
+          <div class="absolute bottom-12 left-0 right-0 text-center">
             <button
               type="button"
               class="btn-primary-sm"
@@ -83,42 +83,50 @@ export default function Start(): JSXElement {
         </div>
 
         <div class="box-option relative">
-          <div class="text-center">
-            <h3 class="text-2xl font-title text-primary">OPTION 2:</h3>
-            <p class="mt-4 text-lg font-title">
+          <div class="grid place-items-center">
+            <h3 class="mt-8 text-2xl text-title text-primary">OPTION 2:</h3>
+            <p class="mt-4 text-lg text-title">
               LOAD A FILE FROM YOUR COMPUTER
             </p>
-            <p>
+            <p class="mt-2 max-w-96 text-center text-lg">
               You can use video(.mp4), audio(.mp3) and subtitle(.srt) files form
               your computer.
             </p>
 
             <button
               type="button"
-              class="w-full p-1 bg-slate-400 hover:bg-slate-500"
+              class="mt-6 btn-file"
               onClick={() => {
                 sourceFileInputRef.click();
               }}
+              title="select an .mp4 or .mp3 file from your computer"
             >
-              {sourceFileName()
-                ? sourceFileName()
-                : "select an .mp3 or .mp4 file from your computer"}
+              <i class="fa-solid fa-paperclip text-2xl flex-none mr-2"></i>
+              <span class="flex-1 line-clamp-1 text-start">
+                {sourceFileName() ? sourceFileName() : "video.mp4 / audio.mp3"}
+              </span>
+              <i class="flex-none fa-solid fa-square-arrow-up-right text-4xl ml-2"></i>
             </button>
+
+            <div class="bg-primary w-10 h-1 mx-auto mt-6"></div>
 
             <button
               type="button"
-              class="mt-2 w-full p-1 bg-slate-400 hover:bg-slate-500"
+              class="mt-6 btn-file"
               onClick={() => {
                 subtitleFileInputRef.click();
               }}
+              title="select an .srt file from your computer"
             >
-              {subtitleFileName()
-                ? subtitleFileName()
-                : "select an .srt file from your computer"}
+              <i class="fa-solid fa-paperclip text-2xl flex-none mr-2"></i>
+              <span class="flex-1 line-clamp-1 text-start">
+                {subtitleFileName() ? subtitleFileName() : "subtitle.srt"}
+              </span>
+              <i class="flex-none fa-solid fa-square-arrow-up-right text-4xl ml-2"></i>
             </button>
           </div>
 
-          <div class="absolute bottom-8 left-0 right-0 text-center">
+          <div class="absolute bottom-12 left-0 right-0 text-center">
             <button type="button" class="btn-primary-sm" onClick={start}>
               LOAD RESOURCES <i class="fa-solid fa-play ms-2"></i>
             </button>
@@ -126,21 +134,37 @@ export default function Start(): JSXElement {
         </div>
       </div>
 
-      <h2 class="my-5 text-2xl">How to get resources</h2>
-      <div class="my-5 border border-gray-400 p-4 rounded-md">
-        <p>
-          To get an video or an audio file, you can get them from any podcast or
-          news website. For example:
+      <h2 class="text-4xl text-center text-title mt-10">
+        HOW TO GET RESOURCES
+      </h2>
+      <div class="mt-10 box grid place-items-center">
+        <i class="fa-regular fa-circle-play text-4xl"></i>
+        <h3 class="mt-5 text-title text-lg">TO OBTAIN A VIDEO OR AUDIO FILE</h3>
+        <p class="mt-2 max-w-96 text-center">
+          You can find them on various podcast or news websites such as{" "}
+          <a href="https://learningenglish.voanews.com/" target="_blank">
+            VOA
+          </a>
+          <span> or </span>
+          <a href="https://www.bbc.co.uk/learningenglish/" target="_blank">
+            BBC
+          </a>
+          .
         </p>
-        <ul class="ms-10 list-disc text-left">
-          <li>VOA</li>
-          <li>BBC</li>
-        </ul>
-        <p class="mt-2">
-          To get an subtitle file for the video or the audio file might be
-          tricky, since the source websites usually doesn't provide them.
-          However, you can use tools like Subtitle Edit or a AI tool to generate
-          them.
+
+        <i class="mt-10 fa-regular fa-closed-captioning text-4xl"></i>
+        <h3 class="mt-5 text-title text-lg">TO OBTAIN A SUBTITLE FILE</h3>
+
+        <p class="mt-2 max-w-96 text-center">
+          It can be challenging as source websites typically do not offer them.
+          Nevertheless, you can utilize tools like{" "}
+          <a
+            href="https://github.com/SubtitleEdit/subtitleedit"
+            target="_blank"
+          >
+            SubtitleEdit
+          </a>{" "}
+          or AI tools to generate subtitles.
         </p>
       </div>
       <input
@@ -154,7 +178,7 @@ export default function Start(): JSXElement {
         ref={subtitleFileInputRef}
         type="file"
         style="display:none"
-        accept=".srt"
+        accept=".srt, .webvtt"
         onchange={onAudioSubFileSelected}
       />
     </section>

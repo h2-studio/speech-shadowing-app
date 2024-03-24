@@ -20,7 +20,7 @@ body {
   color: #3d3b37;
 }
 
-.font-title {
+.text-title {
   @apply font-gilroy-heavy tracking-wider;
 }
 
@@ -47,10 +47,22 @@ a.default {
   @apply btn-primary-base text-lg px-6 py-3;
 }
 
+.btn-file {
+  @apply w-full bg-white rounded-xl py-2 px-4 flex items-center hover:bg-gray-100;
+}
+
 video::-webkit-media-controls-fullscreen-button {
   display: none;
 }
 
+.box {
+  @apply bg-gray-200 p-6 rounded-xl;
+}
+
 .box-option {
-  @apply bg-gray-200 px-4 py-8 rounded-xl h-[500px];
+  @apply box h-[600px];
+}
+
+a {
+  @apply underline;
 }
