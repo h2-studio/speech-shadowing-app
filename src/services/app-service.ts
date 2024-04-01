@@ -78,7 +78,9 @@ export class AppService {
     // the library only support \n
     text = text.replaceAll("\r\n", "\n");
 
-    let cues = await ssp.parser("SRT" as ssp.Format, text);
+    let format = (text.startsWith("WEBVTT") ? "WEBVTT" : "SRT") as ssp.Format;
+
+    let cues = await ssp.parser(format, text);
 
     return cues.map(
       (cue) =>
@@ -329,9 +331,23 @@ export class AppService {
   }
 
   public async exportRecord() {
-    this._audioService.export(
-      this._store.lines.map((l) => l.record).filter((r) => r)
-    );
+    let buffers = this._store.lines.map((l) => l.record).filter((r) => r);
+    if (buffers.length == 0) {
+      return;
+    }
+
+    let tId = toast.loading("exporting");
+    let blob = await this._audioService.export(buffers);
+
+    let ele = document.createElement("a");
+    ele.href = window.URL.createObjectURL(blob);
+
+    // TODO: better export name
+    let date = new Date().toISOString().substring(0, 10);
+    ele.download = `repeat-${date}.mp3`;
+    ele.click();
+
+    toast.remove(tId);
   }
 
   public async loadResourceCategories(): Promise<void> {

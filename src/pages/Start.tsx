@@ -53,9 +53,7 @@ export default function Start(): JSXElement {
           <div class="grid place-items-center">
             <h3 class="mt-8 text-2xl text-title text-primary">OPTION 1:</h3>
 
-            <p class="mt-4 text-lg text-title">
-              USE RESOURCES FROM RE:REPEAT
-            </p>
+            <p class="mt-4 text-lg text-title">USE RESOURCES FROM RE:REPEAT</p>
             <p class="mt-2 max-w-96 text-lg text-center">
               <span>You can use and contribute to </span>
               <a
@@ -142,11 +140,19 @@ export default function Start(): JSXElement {
         <h3 class="mt-5 text-title text-lg">TO OBTAIN A VIDEO OR AUDIO FILE</h3>
         <p class="mt-2 max-w-96 text-center">
           You can find them on various podcast or news websites such as{" "}
-          <a href="https://learningenglish.voanews.com/" target="_blank">
+          <a
+            class="default"
+            href="https://learningenglish.voanews.com/"
+            target="_blank"
+          >
             VOA
           </a>
           <span> or </span>
-          <a href="https://www.bbc.co.uk/learningenglish/" target="_blank">
+          <a
+            class="default"
+            href="https://www.bbc.co.uk/learningenglish/"
+            target="_blank"
+          >
             BBC
           </a>
           .
@@ -159,6 +165,7 @@ export default function Start(): JSXElement {
           It can be challenging as source websites typically do not offer them.
           Nevertheless, you can utilize tools like{" "}
           <a
+            class="default"
             href="https://github.com/SubtitleEdit/subtitleedit"
             target="_blank"
           >
@@ -178,7 +185,7 @@ export default function Start(): JSXElement {
         ref={subtitleFileInputRef}
         type="file"
         style="display:none"
-        accept=".srt, .webvtt"
+        accept=".srt, .vtt"
         onchange={onAudioSubFileSelected}
       />
     </section>

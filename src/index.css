@@ -35,6 +35,7 @@ a.default {
 .logo {
   @apply font-gilroy text-primary;
 }
+
 .btn-primary-base {
   @apply inline-block font-gilroy bg-primary rounded-xl text-white hover:bg-primary-200 tracking-wider;
 }
@@ -61,8 +62,4 @@ video::-webkit-media-controls-fullscreen-button {
 
 .box-option {
   @apply box h-[600px];
-}
-
-a {
-  @apply underline;
 }

@@ -1,4 +1,5 @@
-import Crunker from "crunker";
+import { Mp3Encoder } from "@breezystack/lamejs";
+
 const DomainLength = 20;
 const DomainInterval = 50;
 const LowDomainThreshold = DomainLength * 1;
@@ -119,23 +120,36 @@ export default class AudioService {
     source.start();
   }
 
-  public async export(buffers: AudioBuffer[]) {
+  public async export(buffers: AudioBuffer[]): Promise<Blob> {
     // TODO: remove or pad empty audio
 
-    let crucker = new Crunker();
-    let buffer = crucker.concatAudio(buffers);
+    let numberOfChannels = buffers[0].numberOfChannels;
+    let sampleRate = buffers[0].sampleRate;
 
-    if (buffer && buffer.length > 0) {
-      let exp = await crucker.export(buffer, "audio/mpeg");
-      let ele = document.createElement("a");
-      ele.href = exp.url;
+    let mp3encoder = new Mp3Encoder(numberOfChannels, sampleRate, 128);
 
-      // TODO: better export name
-      let date = new Date().toISOString().substring(0, 10);
-      ele.download = `repeat-${date}.mp3`;
-      ele.click();
+    let output: Uint8Array[] = [];
+    for (let b of buffers) {
+      let bL = new Int16Array(b.getChannelData(0).map(audioFloatToInt16));
+      let bR: Int16Array;
+
+      if (numberOfChannels == 2) {
+        bR = new Int16Array(b.getChannelData(1).map(audioFloatToInt16));
+      }
+
+      let t = mp3encoder.encodeBuffer(bL, bR);
+      output.push(t);
     }
 
-    crucker.close();
+    let l = mp3encoder.flush();
+    if (l.length > 0) {
+      output.push(l);
+    }
+
+    return new Blob(output, { type: "audio/mp3" });
   }
+}
+
+function audioFloatToInt16(f: number) {
+  return f < 0 ? f * 0x8000 : f * 0x7fff;
 }
