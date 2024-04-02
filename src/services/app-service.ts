@@ -38,10 +38,7 @@ export class AppService {
 
   constructor() {
     let stores = createStore({
-      sourceUrl: "",
-      lines: [],
       options: this.loadOptions(),
-      isRecording: false,
     } as AppStore);
 
     this._store = stores[0];
@@ -164,22 +161,28 @@ export class AppService {
     });
   }
 
-  public async startPractice(sourceUrl: string, subtitleUrl: string) {
+  public async startPractice(subtitleUrl: string) {
     try {
       let lines = await this.parseSubtitle(subtitleUrl);
 
       this._setStore(
         produce((store) => {
-          store.sourceUrl = sourceUrl;
           store.lines = lines;
           store.currentLineIndex = null;
         })
       );
-
-      this.navToPractice();
     } catch (error) {
       toast.error("Unable to load the subtitle file.", ToastErrorOptions);
     }
+  }
+
+  public async stopPractice() {
+    this._setStore(
+      produce((store) => {
+        store.lines = null;
+        store.currentLineIndex = null;
+      })
+    );
   }
 
   public navToHome() {
@@ -190,8 +193,17 @@ export class AppService {
     this._navigator("/start");
   }
 
-  public navToPractice() {
-    this._navigator("/practice");
+  public navToPractice(sourceUrl: string, subtitleUrl: string) {
+    let params = new URLSearchParams({
+      sourceUrl,
+      subtitleUrl,
+    });
+
+    this._navigator("/practice?" + params.toString(), {
+      state: {
+        fromNavigator: true,
+      } as PracticeNavState,
+    });
   }
 
   public navToResource() {
@@ -199,7 +211,7 @@ export class AppService {
   }
 
   public async useDemo(type: ResourceType) {
-    this.startPractice(
+    this.navToPractice(
       `${import.meta.env.BASE_URL}demos/${
         type == "video" ? "video.mp4" : "audio.mp3"
       }`,

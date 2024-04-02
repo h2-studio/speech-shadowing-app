@@ -6,7 +6,6 @@ interface AppStoreOptions {
 }
 
 interface AppStore {
-  sourceUrl: string;
   lines: SubtitleLine[];
   currentLineIndex: number;
   options: AppStoreOptions;
@@ -42,4 +41,13 @@ interface Resource {
   subtitlePath: string;
   releasedDate: string;
   from: string;
+}
+
+interface PageProps<T = any> {
+  location: import("@solidjs/router").Location;
+  params: T;
+}
+
+interface PracticeNavState {
+  fromNavigator: boolean
 }

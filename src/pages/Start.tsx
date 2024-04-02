@@ -38,7 +38,7 @@ export default function Start(): JSXElement {
     }
 
     if (sourceUrl && subtitleUrl) {
-      service.startPractice(sourceUrl, subtitleUrl);
+      service.navToPractice(sourceUrl, subtitleUrl);
     } else {
       toast.error("please provide resources", ToastErrorOptions);
     }

@@ -68,7 +68,7 @@ export default function Resource(): JSXElement {
                   <div
                     class="border border-gray-600 p-6 m-1 hover:bg-gray-600"
                     onClick={() => {
-                      service.startPractice(
+                      service.navToPractice(
                         item.sourceUrl,
                         item.subtitleUrl ?? item.subtitlePath
                       );

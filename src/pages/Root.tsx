@@ -9,18 +9,6 @@ export default function Root(props: ParentProps): JSXElement {
   let service = useService();
   service.setNavigator(useNavigate());
 
-  onMount(() => {
-    // check the quest string
-    let query = new URLSearchParams(location.search);
-
-    if (query.has("sourceUrl") && query.has("subtitleUrl")) {
-      service.startPractice(
-        query.get("sourceUrl"),
-        query.get("subtitleUrl")
-      );
-    }
-  });
-
   return (
     <>
       <Header />
