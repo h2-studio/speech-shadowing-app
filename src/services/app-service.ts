@@ -23,6 +23,7 @@ export class AppService {
   private _playTimeoutId: number;
   private _audioService: AudioService;
   private _resourceService: ResourceService;
+  private _currentLine: SubtitleLine;
 
   public get onDomainDataAvailable() {
     return this._audioService.onDomainDataAvailable;
@@ -47,9 +48,15 @@ export class AppService {
     this._resourceService = new ResourceService();
 
     this._audioService = new AudioService();
+
     this._audioService.onStateUpdate = (isRecording) => {
       this._setStore("isRecording", isRecording);
+
+      if (this._store.options.playLineWhileRecording) {
+        this.playLine(this._currentLine, true);
+      }
     };
+
     this._audioService.autoStopRecording =
       this._store.options.autoStopRecording;
   }
@@ -249,6 +256,7 @@ export class AppService {
       }
     }
   }
+
   public unselectLine() {
     // if video is not paused, onMediaTimeUpdate will update currentLineIndex
     this._videoRef.pause();
@@ -288,6 +296,9 @@ export class AppService {
   }
 
   public async playLine(line: SubtitleLine, lowVolume: boolean = false) {
+    this.interrupt();
+    this._currentLine = line;
+
     clearTimeout(this._playTimeoutId);
 
     this._videoRef.currentTime = line.start;
@@ -295,7 +306,7 @@ export class AppService {
     let originVolume: number;
     if (lowVolume) {
       originVolume = this._videoRef.volume;
-      this._videoRef.volume = 0.1;
+      this._videoRef.volume = 0.3;
     }
 
     await this._videoRef.play();
@@ -315,6 +326,9 @@ export class AppService {
   }
 
   public async playLineRecord(line: SubtitleLine) {
+    this.interrupt();
+    this._currentLine = line;
+
     if (!line.record) {
       return;
     }
@@ -323,14 +337,11 @@ export class AppService {
   }
 
   public recordLine(line: SubtitleLine) {
-    if (this._store.isRecording) {
-      //TODO: stop previous record
-      return;
-    }
+    this.interrupt();
 
-    // TODO: stop if playing
+    this._currentLine = line;
 
-    this._audioService.record((record) => {
+    this._audioService.record().then((record) => {
       this._setStore("lines", line.index, "record", record);
       if (this._store.options.autoPlay) {
         this.playSelectLineRecord();
@@ -339,7 +350,7 @@ export class AppService {
   }
 
   public stopRecord() {
-    this._audioService?.stop();
+    this._audioService?.stopRecord();
   }
 
   public async exportRecord() {
@@ -372,5 +383,17 @@ export class AppService {
     let resources = await this._resourceService.fetchResources(category.path);
 
     this._setStore("categories", category.index, "resources", resources);
+  }
+
+  private async interrupt() {
+    if (!this._videoRef.paused) {
+      this._videoRef.pause();
+    }
+
+    if (this._store.isRecording) {
+      this._audioService.stopRecord(true);
+    }
+
+    this._audioService.stopPlay();
   }
 }

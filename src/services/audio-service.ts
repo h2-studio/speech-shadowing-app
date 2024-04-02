@@ -6,12 +6,16 @@ const LowDomainThreshold = DomainLength * 1;
 const MinLowDomain = 124;
 const MaxLowDomain = 132;
 const FFTSize = 128;
+const MaxDuration = 60000; // 1 min
 
 export default class AudioService {
   private _recorder: MediaRecorder;
   private _ctx: AudioContext;
   private _maxDurationTimeoutId: number;
   private _analyzeIntervalId: number;
+  private _source: AudioBufferSourceNode;
+  private _interrupted: boolean;
+
   public autoStopRecording: boolean;
   public onStateUpdate: (isRecording: boolean) => void;
   public onDomainDataAvailable: (data: number[]) => void;
@@ -58,7 +62,7 @@ export default class AudioService {
           }
 
           if (lowDomainCount >= LowDomainThreshold) {
-            this.stop();
+            this.stopRecord();
             if (import.meta.hot) {
               console.log("Stop recording at low domains", avgDomains);
             }
@@ -74,50 +78,73 @@ export default class AudioService {
     this._analyzeIntervalId = setInterval(analyze, DomainInterval);
   }
 
-  public record(callback: (result: AudioBuffer) => void) {
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: true,
-      })
-      .then((mediaStream) => {
-        this.onStateUpdate?.(true);
+  public record(): Promise<AudioBuffer> {
+    return new Promise((resolve) => {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+        })
+        .then(async (mediaStream) => {
+          this.onStateUpdate?.(true);
+          this._interrupted = false;
 
-        let chunks = [] as Blob[];
-        this._recorder = new MediaRecorder(mediaStream);
-        this._recorder.ondataavailable = async (e) => {
-          chunks.push(e.data);
+          let chunks = [] as Blob[];
+          this._recorder = new MediaRecorder(mediaStream);
+          this._recorder.ondataavailable = async (e) => {
+            if (this._interrupted) {
+              this.onStateUpdate?.(false);
+              return;
+            }
 
-          if (this._recorder.state == "inactive") {
-            // the last data
-            mediaStream.getTracks().forEach((track) => track.stop());
+            chunks.push(e.data);
 
-            let buffer = await new Blob(chunks).arrayBuffer();
-            let record = await this.context.decodeAudioData(buffer);
+            if (this._recorder.state == "inactive") {
+              // the last data
+              mediaStream.getTracks().forEach((track) => track.stop());
 
-            this._recorder = null;
+              let buffer = await new Blob(chunks).arrayBuffer();
+              let record = await this.context.decodeAudioData(buffer);
 
-            callback?.(record);
-            this.onStateUpdate?.(false);
-          }
-        };
+              this._recorder = null;
 
-        this._recorder.start();
-        this.startAnalyze();
-      });
+              resolve(record);
+              this.onStateUpdate?.(false);
+            }
+          };
+
+          this._recorder.start();
+
+          this._maxDurationTimeoutId = setTimeout(() => {
+            this.stopRecord();
+          }, MaxDuration);
+
+          this.startAnalyze();
+        });
+    });
   }
 
-  public stop() {
+  public stopRecord(interrupted: boolean = false) {
     clearTimeout(this._maxDurationTimeoutId);
     clearInterval(this._analyzeIntervalId);
+
+    this._interrupted = interrupted;
 
     this._recorder?.stop();
   }
 
   public play(audioBuffer: AudioBuffer) {
-    let source = this.context.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(this.context.destination);
-    source.start();
+    this._source = this.context.createBufferSource();
+    this._source.buffer = audioBuffer;
+    this._source.connect(this.context.destination);
+    this._source.onended = () => {
+      this._source = null;
+    };
+
+    this._source.start();
+  }
+
+  public stopPlay() {
+    this._source?.stop();
   }
 
   public async export(buffers: AudioBuffer[]): Promise<Blob> {
