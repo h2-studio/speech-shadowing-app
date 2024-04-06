@@ -7,6 +7,7 @@ import {
   Switch,
 } from "solid-js";
 
+import BackButton from "@/components/BackButton";
 import { useService } from "@/service";
 
 export default function Resource(): JSXElement {
@@ -39,10 +40,8 @@ export default function Resource(): JSXElement {
 
   return (
     <>
-      <div>
-        <button
-          type="button"
-          class="underline hover:text-gray-700"
+      <div class="my-10">
+        <BackButton
           onClick={() => {
             if (selectedCategory()) {
               setSelectedCategory(null);
@@ -50,9 +49,7 @@ export default function Resource(): JSXElement {
               service.navToStart();
             }
           }}
-        >
-          back
-        </button>
+        />
       </div>
 
       <Switch>

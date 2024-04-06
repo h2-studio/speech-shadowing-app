@@ -100,17 +100,20 @@ export class AppService {
   }
 
   private onMediaLoaded() {
+    // TODO: remove controls
     // update elements
-
     this._videoRef.playbackRate = this._store.options.playbackRate;
     // use the height to detect it is video or audio
     if (this._videoRef.videoHeight == 0) {
-      // show control on video
+      // audio            
       this._videoRef.classList.add("max-h-10");
       this._videoRef.classList.remove("max-h-80");
+      this._videoRef.controls = true;
     } else {
+      // video
       this._videoRef.classList.add("max-h-80");
       this._videoRef.classList.remove("max-h-10");
+      this._videoRef.controls = false;
     }
   }
 
@@ -266,7 +269,7 @@ export class AppService {
   public selectPreviousLine() {
     if (this._store.currentLineIndex == null) {
       this.selectLine(0);
-    } else if (this._store.currentLineIndex > 0) {
+    } else if (this._store.currentLineIndex > 1) {
       this.selectLine(this._store.currentLineIndex - 1);
     }
   }
@@ -274,7 +277,7 @@ export class AppService {
   public selectNextLine() {
     if (this._store.currentLineIndex == null) {
       this.selectLine(0);
-    } else if (this._store.currentLineIndex < this._store.lines.length) {
+    } else if (this._store.currentLineIndex < this._store.lines.length - 1) {
       this.selectLine(this._store.currentLineIndex + 1);
     }
   }

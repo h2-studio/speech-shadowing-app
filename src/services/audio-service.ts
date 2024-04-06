@@ -93,6 +93,7 @@ export default class AudioService {
           this._recorder.ondataavailable = async (e) => {
             if (this._interrupted) {
               this.onStateUpdate?.(false);
+              mediaStream.getTracks().forEach((track) => track.stop());
               return;
             }
 

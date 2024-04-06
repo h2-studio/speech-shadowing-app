@@ -1,16 +1,9 @@
-import {
-  createSignal,
-  For,
-  JSXElement,
-  onCleanup,
-  onMount,
-  Show,
-} from "solid-js";
+import { createSignal, For, JSXElement, onCleanup, onMount, Show } from "solid-js";
 
+import BackButton from "@/components/BackButton";
+import Button from "@/components/Button";
+import PracticeLine from "@/components/PracticeLine";
 import { useService } from "@/service";
-
-import Button from "../components/Button";
-import PracticeLine from "../components/PracticeLine";
 
 export default function Practice(props: PageProps): JSXElement {
   let service = useService();
@@ -84,30 +77,26 @@ export default function Practice(props: PageProps): JSXElement {
 
   return (
     <>
-      <div class="my-2">
-        <button
-          type="button"
-          class="p-1 underline"
+      <div class="my-10">
+        <BackButton
           onClick={() => {
             service.navToStart();
           }}
-        >
-          back
-        </button>
+        />
       </div>
 
       <Show when={isReady()} fallback="loading">
-        <div>
+        <div class="box">
+          {/* TODO: Custom Control */}
           <video
             class="w-full max-h-80"
             ref={(ref) => service.setMediaRef(ref)}
             src={params.sourceUrl}
-            controls
             autoplay={false}
           />
         </div>
 
-        <div class="py-4">
+        <div class="box my-5">
           options:
           <span class="mx-2">
             play while recording{" "}
@@ -169,7 +158,7 @@ export default function Practice(props: PageProps): JSXElement {
           </Button>
         </div>
 
-        <div class="py-4">
+        <div class="box my-5">
           <Show when={service.store.currentLineIndex == null}>
             <For each={service.store.lines}>
               {(line) => (
