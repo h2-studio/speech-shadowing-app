@@ -22,6 +22,8 @@ interface SubtitleLine {
   duration: number;
   text: string;
   record: AudioBuffer;
+  isFirstLine: boolean;
+  isLastLine: boolean;
 }
 
 interface ResourceCategory {

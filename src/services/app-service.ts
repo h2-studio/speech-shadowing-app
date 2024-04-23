@@ -85,7 +85,7 @@ export class AppService {
     let format = (text.startsWith("WEBVTT") ? "WEBVTT" : "SRT") as ssp.Format;
 
     let cues = await ssp.parser(format, text);
-
+    let lastLineIndex = cues.length - 1;
     return cues.map(
       (cue) =>
         ({
@@ -95,6 +95,8 @@ export class AppService {
           duration:
             cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
           text: cue.text.join(" "),
+          isFirstLine: cue.sequence == 0,
+          isLastLine: cue.sequence == lastLineIndex,
         } as SubtitleLine)
     );
   }
@@ -105,7 +107,7 @@ export class AppService {
     this._videoRef.playbackRate = this._store.options.playbackRate;
     // use the height to detect it is video or audio
     if (this._videoRef.videoHeight == 0) {
-      // audio            
+      // audio
       this._videoRef.classList.add("max-h-10");
       this._videoRef.classList.remove("max-h-80");
       this._videoRef.controls = true;

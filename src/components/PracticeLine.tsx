@@ -24,56 +24,68 @@ export default function PracticeLine(): JSXElement {
   };
 
   return (
-    <div class="grid grid-cols-12">
-      <div class="">
-        <button
-          title="go to previous (Left Arrow, A)"
-          class="underline hover:text-gray-500"
-          onClick={() => service.selectPreviousLine()}
-        >
-          previous
-        </button>
-      </div>
-      <div class="col-span-10">
-        <div>{line().text}</div>
-        <div>
-          <Button
+    <>
+      <div class="text-center text-lg mt-5">{line().text}</div>
+
+      <div class="flex justify-center mt-5">
+        <div class="text-center w-20">
+          <button
+            type="button"
+            title="go to previous (Left Arrow, A)"
+            class="hover:text-gray-500 disabled:text-gray-500"
+            disabled={line().isFirstLine}
+            onClick={() => service.selectPreviousLine()}
+          >
+            <i class="block text-4xl fa-solid fa-circle-left"></i>
+            previous
+          </button>
+        </div>
+        <div class="text-center w-20">
+          <button
+            type="button"
             title="play (Up Arrow, W)"
+            class="hover:text-gray-500"
             onClick={() => {
               service.playLine(line());
             }}
           >
+            <i class="block text-4xl fa-solid fa-circle-play"></i>
             play
-          </Button>
-         
-          <Show when={line().record}>
-            <Button
-              title="play recording (Down Arrow, S)"
-              onClick={() => {
-                service.playLineRecord(line());
-              }}
-            >
-              play record
-            </Button>
-          </Show>
+          </button>
         </div>
-        <div>
-          <RecordButton
-            isRecording={service.store.isRecording}
-            domainData={domainData()}
-            onClick={onRecord}
-          />
+        <Show when={line().record}>
+          <button
+            type="button"
+            title="play recording (Down Arrow, S)"
+            onClick={() => {
+              service.playLineRecord(line());
+            }}
+          >
+            <i class="block text-4xl fa-solid fa-circle-dot"></i>
+            play record
+          </button>
+        </Show>
+        <div class="text-center w-20">
+          <button
+            type="button"
+            title="go to next line (Right Arrow, D)"
+            class="hover:text-gray-500 disabled:text-gray-500"
+            disabled={line().isLastLine}
+            onClick={() => service.selectNextLine()}
+          >
+            <i class="block text-4xl fa-solid fa-circle-right"></i>
+            next
+          </button>
         </div>
       </div>
-      <div>
-        <button
-          title="go to next line (Right Arrow, D)"
-          class="underline hover:text-gray-500"
-          onClick={() => service.selectNextLine()}
-        >
-          next
-        </button>
+
+      <div class="text-center mt-5">
+        <RecordButton
+          isRecording={service.store.isRecording}
+          domainData={domainData()}
+          onClick={onRecord}
+        />
       </div>
-    </div>
+    </>
   );
 }

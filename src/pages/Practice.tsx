@@ -1,4 +1,11 @@
-import { createSignal, For, JSXElement, onCleanup, onMount, Show } from "solid-js";
+import {
+  createSignal,
+  For,
+  JSXElement,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
 
 import BackButton from "@/components/BackButton";
 import Button from "@/components/Button";
@@ -177,10 +184,10 @@ export default function Practice(props: PageProps): JSXElement {
                 <button
                   type="button"
                   title="end practice (Esc)"
-                  class="underline hover:text-gray-500"
+                  class="text-4xl text-black hover:text-gray-500"
                   onClick={() => service.unselectLine()}
                 >
-                  close
+                  <i class="fa-solid fa-circle-xmark"></i>
                 </button>
               </div>
               <PracticeLine />
