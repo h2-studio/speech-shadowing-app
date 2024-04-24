@@ -101,8 +101,7 @@ export class AppService {
     );
   }
 
-  private onMediaLoaded() {
-    // TODO: remove controls
+  private onMediaLoaded() {    
     // update elements
     this._videoRef.playbackRate = this._store.options.playbackRate;
     // use the height to detect it is video or audio
@@ -179,6 +178,7 @@ export class AppService {
 
       this._setStore(
         produce((store) => {
+          store.hasRecord = null;
           store.lines = lines;
           store.currentLineIndex = null;
         })
@@ -348,6 +348,10 @@ export class AppService {
 
     this._audioService.record().then((record) => {
       this._setStore("lines", line.index, "record", record);
+      if (!this._store.hasRecord) {
+        this._setStore("hasRecord", true);
+      }
+
       if (this._store.options.autoPlay) {
         this.playSelectLineRecord();
       }
@@ -369,8 +373,7 @@ export class AppService {
 
     let ele = document.createElement("a");
     ele.href = window.URL.createObjectURL(blob);
-
-    // TODO: better export name
+    
     let date = new Date().toISOString().substring(0, 10);
     ele.download = `repeat-${date}.mp3`;
     ele.click();

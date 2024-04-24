@@ -10,6 +10,7 @@ interface AppStore {
   currentLineIndex: number;
   options: AppStoreOptions;
   isRecording: boolean;
+  hasRecord: boolean;
   categories: ResourceCategory[];
 }
 

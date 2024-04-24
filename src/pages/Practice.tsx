@@ -103,7 +103,7 @@ export default function Practice(props: PageProps): JSXElement {
           />
         </div>
 
-        <div class="box my-5">
+        <div class="box my-5 relative">
           options:
           <span class="mx-2">
             play while recording{" "}
@@ -160,9 +160,16 @@ export default function Practice(props: PageProps): JSXElement {
               <option value="1.5">1.5</option>
             </select>
           </span>
-          <Button class="mx-2" onClick={() => service.exportRecord()}>
-            save records
-          </Button>
+          <span class="mx-2 absolute right-0">
+            <button
+              type="button"
+              class="hover:text-gray-500 disabled:text-gray-400"
+              disabled={!service.store.hasRecord}
+              onClick={() => service.exportRecord()}
+            >
+              save records
+            </button>
+          </span>
         </div>
 
         <div class="box my-5">
