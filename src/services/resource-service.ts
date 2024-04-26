@@ -22,7 +22,7 @@ export default class ResourceService {
     resources.forEach((r, i) => {
       r.index = i;
       if (r.subtitlePath) {
-        r.subtitlePath = urlJoin(ResourceRepoUrl, path, r.subtitlePath);
+        r.subtitleUrl = urlJoin(ResourceRepoUrl, path, r.subtitlePath);
       }
     });
 

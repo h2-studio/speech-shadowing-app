@@ -9,6 +9,7 @@ import {
 
 import BackButton from "@/components/BackButton";
 import { useService } from "@/service";
+import ResourceCard from "@/components/ResourceCard";
 
 export default function Resource(): JSXElement {
   let service = useService();
@@ -61,27 +62,7 @@ export default function Resource(): JSXElement {
             <div class="grid grid-cols-2">
               {/* TODO: use fetch more */}
               <For each={selectedCategory().resources}>
-                {(item) => (
-                  <div
-                    class="border border-gray-600 p-6 m-1 hover:bg-gray-600"
-                    onClick={() => {
-                      service.navToPractice(
-                        item.sourceUrl,
-                        item.subtitleUrl ?? item.subtitlePath
-                      );
-                    }}
-                  >
-                    type: {item.type}
-                    <br />
-                    title: {item.title}
-                    <br />
-                    duration: {item.duration}
-                    <br />
-                    release date: {item.releasedDate}
-                    <br />
-                    last practice date: TODO
-                  </div>
-                )}
+                {(resource) => <ResourceCard resource={resource} />}
               </For>
             </div>
           </div>

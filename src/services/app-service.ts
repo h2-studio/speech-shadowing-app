@@ -6,6 +6,7 @@ import { PlaybackEffects, ToastErrorOptions } from "@/const";
 import { Navigator } from "@solidjs/router";
 
 import AudioService from "./audio-service";
+import { DbService } from "./db-service";
 import ResourceService from "./resource-service";
 
 class AppStoreOptionsImpl implements AppStoreOptions {
@@ -21,9 +22,11 @@ export class AppService {
   private _setStore: SetStoreFunction<AppStore>;
   private _navigator: Navigator;
   private _playTimeoutId: number;
+  private _currentLine: SubtitleLine;
+
   private _audioService: AudioService;
   private _resourceService: ResourceService;
-  private _currentLine: SubtitleLine;
+  private _dbService: DbService;
 
   public get onDomainDataAvailable() {
     return this._audioService.onDomainDataAvailable;
@@ -59,6 +62,8 @@ export class AppService {
 
     this._audioService.autoStopRecording =
       this._store.options.autoStopRecording;
+
+    this._dbService = new DbService();
   }
 
   private loadOptions(): AppStoreOptions {
@@ -101,7 +106,7 @@ export class AppService {
     );
   }
 
-  private onMediaLoaded() {    
+  private onMediaLoaded() {
     // update elements
     this._videoRef.playbackRate = this._store.options.playbackRate;
     // use the height to detect it is video or audio
@@ -153,6 +158,18 @@ export class AppService {
     toast.error("Unable to load the media.", ToastErrorOptions);
   }
 
+  private async interrupt() {
+    if (!this._videoRef.paused) {
+      this._videoRef.pause();
+    }
+
+    if (this._store.isRecording) {
+      this._audioService.stopRecord(true);
+    }
+
+    this._audioService.stopPlay();
+  }
+
   public setNavigator(navigator: Navigator) {
     this._navigator = navigator;
   }
@@ -178,9 +195,8 @@ export class AppService {
 
       this._setStore(
         produce((store) => {
-          store.hasRecord = null;
+          store.subtitleUrl = subtitleUrl;
           store.lines = lines;
-          store.currentLineIndex = null;
         })
       );
     } catch (error) {
@@ -191,6 +207,8 @@ export class AppService {
   public async stopPractice() {
     this._setStore(
       produce((store) => {
+        store.subtitleUrl = null;
+        store.hasRecord = null;
         store.lines = null;
         store.currentLineIndex = null;
       })
@@ -350,6 +368,10 @@ export class AppService {
       this._setStore("lines", line.index, "record", record);
       if (!this._store.hasRecord) {
         this._setStore("hasRecord", true);
+
+        if (!this._store.subtitleUrl.startsWith("blob:")) {
+          this._dbService.setPracticed(this._store.subtitleUrl);
+        }
       }
 
       if (this._store.options.autoPlay) {
@@ -373,7 +395,7 @@ export class AppService {
 
     let ele = document.createElement("a");
     ele.href = window.URL.createObjectURL(blob);
-    
+
     let date = new Date().toISOString().substring(0, 10);
     ele.download = `repeat-${date}.mp3`;
     ele.click();
@@ -393,15 +415,7 @@ export class AppService {
     this._setStore("categories", category.index, "resources", resources);
   }
 
-  private async interrupt() {
-    if (!this._videoRef.paused) {
-      this._videoRef.pause();
-    }
-
-    if (this._store.isRecording) {
-      this._audioService.stopRecord(true);
-    }
-
-    this._audioService.stopPlay();
+  public getPracticeRecord(subtitleUrl: string): Promise<PracticeRecord> {
+    return this._dbService.getPracticeRecord(subtitleUrl);
   }
 }

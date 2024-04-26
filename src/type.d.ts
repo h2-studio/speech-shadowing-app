@@ -6,6 +6,7 @@ interface AppStoreOptions {
 }
 
 interface AppStore {
+  subtitleUrl: string;
   lines: SubtitleLine[];
   currentLineIndex: number;
   options: AppStoreOptions;
@@ -52,5 +53,11 @@ interface PageProps<T = any> {
 }
 
 interface PracticeNavState {
-  fromNavigator: boolean
+  fromNavigator: boolean;
+}
+
+interface PracticeRecord {
+  subtitleUrl: string;
+  times: number;
+  practicedAt: Date;
 }
