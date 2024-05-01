@@ -106,23 +106,6 @@ export class AppService {
     );
   }
 
-  private onMediaLoaded() {
-    // update elements
-    this._videoRef.playbackRate = this._store.options.playbackRate;
-    // use the height to detect it is video or audio
-    if (this._videoRef.videoHeight == 0) {
-      // audio
-      this._videoRef.classList.add("max-h-10");
-      this._videoRef.classList.remove("max-h-80");
-      this._videoRef.controls = true;
-    } else {
-      // video
-      this._videoRef.classList.add("max-h-80");
-      this._videoRef.classList.remove("max-h-10");
-      this._videoRef.controls = false;
-    }
-  }
-
   private onMediaTimeUpdate() {
     if (this._videoRef.paused) {
       return;
@@ -176,16 +159,9 @@ export class AppService {
 
   public setMediaRef(mediaRef: HTMLVideoElement) {
     this._videoRef = mediaRef;
-    this._videoRef.disablePictureInPicture = true;
 
-    this._videoRef.addEventListener("loadedmetadata", () => {
-      this.onMediaLoaded();
-    });
     this._videoRef.addEventListener("timeupdate", () => {
       this.onMediaTimeUpdate();
-    });
-    this._videoRef.addEventListener("error", () => {
-      this.onMediaError();
     });
   }
 

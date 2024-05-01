@@ -8,9 +8,9 @@ import {
 } from "solid-js";
 
 import BackButton from "@/components/BackButton";
-import Button from "@/components/Button";
 import PracticeLine from "@/components/PracticeLine";
 import { useService } from "@/service";
+import VideoPlayer from "@/components/VideoPlayer";
 
 export default function Practice(props: PageProps): JSXElement {
   let service = useService();
@@ -94,12 +94,8 @@ export default function Practice(props: PageProps): JSXElement {
 
       <Show when={isReady()} fallback="loading">
         <div class="box">
-          {/* TODO: Custom Control */}
-          <video
-            class="w-full max-h-80"
-            ref={(ref) => service.setMediaRef(ref)}
+          <VideoPlayer
             src={params.sourceUrl}
-            autoplay={false}
           />
         </div>
 
