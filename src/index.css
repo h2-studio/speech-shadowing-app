@@ -63,3 +63,8 @@ video::-webkit-media-controls-fullscreen-button {
 .box-option {
   @apply box h-[600px];
 }
+
+ruby rt {
+  font-family: arial !important;
+  font-size: 80%;
+}
