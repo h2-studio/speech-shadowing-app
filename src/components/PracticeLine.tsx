@@ -25,7 +25,10 @@ export default function PracticeLine(): JSXElement {
 
   return (
     <>
-      <div class="text-center text-lg mt-5">{line().text}</div>
+      <div
+        class="text-center text-lg mt-5"
+        innerHTML={line().html || line().text}
+      />
 
       <div class="flex justify-center mt-5">
         <button

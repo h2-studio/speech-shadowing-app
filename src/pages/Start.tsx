@@ -185,7 +185,7 @@ export default function Start(): JSXElement {
         ref={subtitleFileInputRef}
         type="file"
         style="display:none"
-        accept=".srt, .vtt"
+        accept=".srt, .vtt, .json"
         onchange={onAudioSubFileSelected}
       />
     </section>

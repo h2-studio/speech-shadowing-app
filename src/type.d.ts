@@ -23,6 +23,7 @@ interface SubtitleLine {
   end: number;
   duration: number;
   text: string;
+  html: string;
   record: AudioBuffer;
   isFirstLine: boolean;
   isLastLine: boolean;

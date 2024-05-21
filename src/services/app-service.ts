@@ -83,27 +83,49 @@ export class AppService {
   private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
     let res = await fetch(url);
     let text = await res.text();
+    text = text.trim();
 
-    // the library only support \n
-    text = text.replaceAll("\r\n", "\n");
+    if (text.startsWith("[") && text.endsWith("]")) {
+      // json
+      let lines = JSON.parse(text) as SubtitleLine[];
+      let lastLineIndex = lines.length - 1;
 
-    let format = (text.startsWith("WEBVTT") ? "WEBVTT" : "SRT") as ssp.Format;
+      return lines.map(
+        (line, i) =>
+          ({
+            index: i,
+            start: line.start,
+            end: line.end,
+            duration: line.end - line.start,
+            text: line.text,
+            html: line.html,
+            isFirstLine: i == 0,
+            isLastLine: i == lastLineIndex,
+          } as SubtitleLine)
+      );
+    } else {
+      // srt or vtt
+      // the library only support \n
+      text = text.replaceAll("\r\n", "\n");
 
-    let cues = await ssp.parser(format, text);
-    let lastLineIndex = cues.length - 1;
-    return cues.map(
-      (cue) =>
-        ({
-          index: cue.sequence,
-          start: cue.startTime.totals.inSeconds,
-          end: cue.endTime.totals.inSeconds,
-          duration:
-            cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
-          text: cue.text.join(" "),
-          isFirstLine: cue.sequence == 0,
-          isLastLine: cue.sequence == lastLineIndex,
-        } as SubtitleLine)
-    );
+      let format = (text.startsWith("WEBVTT") ? "WEBVTT" : "SRT") as ssp.Format;
+
+      let cues = await ssp.parser(format, text);
+      let lastLineIndex = cues.length - 1;
+      return cues.map(
+        (cue) =>
+          ({
+            index: cue.sequence,
+            start: cue.startTime.totals.inSeconds,
+            end: cue.endTime.totals.inSeconds,
+            duration:
+              cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
+            text: cue.text.join(" "),
+            isFirstLine: cue.sequence == 0,
+            isLastLine: cue.sequence == lastLineIndex,
+          } as SubtitleLine)
+      );
+    }
   }
 
   private onMediaTimeUpdate() {
