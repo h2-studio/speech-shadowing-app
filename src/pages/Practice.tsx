@@ -6,11 +6,13 @@ import {
   onMount,
   Show,
 } from "solid-js";
+import toast from "solid-toast";
 
 import BackButton from "@/components/BackButton";
 import PracticeLine from "@/components/PracticeLine";
-import { useService } from "@/service";
 import VideoPlayer from "@/components/VideoPlayer";
+import { ToastErrorOptions } from "@/const";
+import { useService } from "@/service";
 
 export default function Practice(props: PageProps): JSXElement {
   let service = useService();
@@ -68,12 +70,29 @@ export default function Practice(props: PageProps): JSXElement {
     return false;
   };
 
+  let exportRecord = () => {
+    let tId = toast.loading("exporting");
+    service
+      .exportRecord()
+      .catch((e) => {
+        toast.error("export failed");
+      })
+      .finally(() => {
+        toast.remove(tId);
+      });
+  };
+
   onMount(() => {
     document.addEventListener("keydown", onKeyEvent);
 
-    service.startPractice(params.subtitleUrl).then(() => {
-      setIsReady(true);
-    });
+    service
+      .startPractice(params.subtitleUrl)
+      .then(() => {
+        setIsReady(true);
+      })
+      .catch(() => {
+        toast.error("Unable to load the subtitle file.", ToastErrorOptions);
+      });
   });
 
   onCleanup(() => {
@@ -94,9 +113,7 @@ export default function Practice(props: PageProps): JSXElement {
 
       <Show when={isReady()} fallback="loading">
         <div class="box">
-          <VideoPlayer
-            src={params.sourceUrl}
-          />
+          <VideoPlayer src={params.sourceUrl} />
         </div>
 
         <div class="box my-5 relative">
@@ -161,7 +178,7 @@ export default function Practice(props: PageProps): JSXElement {
               type="button"
               class="hover:text-gray-500 disabled:text-gray-400"
               disabled={!service.store.hasRecord}
-              onClick={() => service.exportRecord()}
+              onClick={exportRecord}
             >
               save records
             </button>

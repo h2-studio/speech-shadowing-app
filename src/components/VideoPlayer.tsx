@@ -1,20 +1,15 @@
 import { useService } from "@/service";
-import { formatTime } from "@/utils/duration";
-import { createSignal, JSXElement, onCleanup, onMount, Show } from "solid-js";
+import { createSignal, JSXElement, onMount, Show } from "solid-js";
 
 interface Props {
   src: string;
-}
-
-interface VideoInfo {
-  duration: string;
 }
 
 export default function VideoPlayer(props: Props): JSXElement {
   let service = useService();
   let videoRef: HTMLVideoElement;
   let [loadStatus, setLoadStatus] = createSignal<boolean>(); // null = unload, true = load, false = error
-  let [durationStr, setDurationStr] = createSignal<string>();
+  let [isAudio, setIsAudio] = createSignal<boolean>();
 
   onMount(() => {
     videoRef.disablePictureInPicture = true;
@@ -24,21 +19,10 @@ export default function VideoPlayer(props: Props): JSXElement {
       // use the height to detect it is video or audio
       if (videoRef.videoHeight == 0) {
         // audio
-        videoRef.classList.add("max-h-10");
-        videoRef.classList.remove("max-h-80");
-        videoRef.controls = true;
-      } else {
-        // video
-        videoRef.classList.add("max-h-80");
-        videoRef.classList.remove("max-h-10");
-        videoRef.controls = false;
+        setIsAudio(true);
+        videoRef.classList.add("hidden");
       }
 
-      // setVideoInfo({
-      //   duration: videoRef.duration,
-      // });
-
-      setDurationStr(formatTime(videoRef.duration));
       setLoadStatus(true);
     });
 
@@ -49,7 +33,12 @@ export default function VideoPlayer(props: Props): JSXElement {
 
   return (
     <div class="flex flex-col">
-      <div class="self-center relative">
+      <div
+        classList={{
+          "self-center": !isAudio(),
+          relative: !isAudio(),
+        }}
+      >
         <video
           class="max-h-80"
           ref={(ref) => {
@@ -58,10 +47,17 @@ export default function VideoPlayer(props: Props): JSXElement {
           }}
           src={props.src}
           autoplay={false}
+          controls={false}
         />
+
         <Show when={loadStatus() == true}>
-          <div>{durationStr()}</div>
+          <Show when={isAudio() == true}>
+            <div>
+              <i class="fa-solid fa-music"></i> Audio
+            </div>
+          </Show>
         </Show>
+
         <Show when={loadStatus() == false}>
           <div class="absolute top-0 min-h-40 flex">
             <div class="place-self-center">
@@ -69,6 +65,7 @@ export default function VideoPlayer(props: Props): JSXElement {
             </div>
           </div>
         </Show>
+
         <Show when={loadStatus() == null}>
           <div class="absolute top-0 min-h-40 flex">
             <div class="place-self-center">Loading</div>
