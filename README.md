@@ -1,4 +1,4 @@
-# RE:PEAT
+# RE.PEAT
 
 A web app for practice speech shadowing technique.
 

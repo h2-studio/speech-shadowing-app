@@ -61,7 +61,7 @@ export default function Start(): JSXElement {
                 href="https://github.com/team-h2/repeat-resources"
                 target="_blank"
               >
-                Re:peat-Resources
+                Repeat-Resources
               </a>
               <span>, a public repository for shared resources.</span>
             </p>

@@ -5,7 +5,7 @@ export default function Header(): JSXElement {
     <header class="bg-black">
       <div class="h-20 max-w-screen-lg lg:mx-auto px-2 flex relative">
         <a href="/" class="logo text-4xl self-center">
-          <img src={import.meta.env.BASE_URL + "/logo.png"} />
+          <img src={import.meta.env.BASE_URL + "images/logo.png"} alt="logo" />
         </a>
         <span class="self-center absolute right-2 ">
           <a

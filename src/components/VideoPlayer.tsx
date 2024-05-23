@@ -16,13 +16,9 @@ export default function VideoPlayer(props: Props): JSXElement {
 
     videoRef.addEventListener("loadedmetadata", () => {
       videoRef.playbackRate = service.store.options.playbackRate;
-      // use the height to detect it is video or audio
-      if (videoRef.videoHeight == 0) {
-        // audio
-        setIsAudio(true);
-        videoRef.classList.add("hidden");
-      }
 
+      // use the height to detect it is video or audio
+      setIsAudio(videoRef.videoHeight == 0);
       setLoadStatus(true);
     });
 
@@ -32,13 +28,13 @@ export default function VideoPlayer(props: Props): JSXElement {
   });
 
   return (
-    <div class="flex flex-col">
-      <div
-        classList={{
-          "self-center": !isAudio(),
-          relative: !isAudio(),
-        }}
-      >
+    <div
+      class="box flex flex-col"
+      classList={{
+        hidden: isAudio(),
+      }}
+    >
+      <div class="self-center relative">
         <video
           class="max-h-80"
           ref={(ref) => {
@@ -49,14 +45,6 @@ export default function VideoPlayer(props: Props): JSXElement {
           autoplay={false}
           controls={false}
         />
-
-        <Show when={loadStatus() == true}>
-          <Show when={isAudio() == true}>
-            <div>
-              <i class="fa-solid fa-music"></i> Audio
-            </div>
-          </Show>
-        </Show>
 
         <Show when={loadStatus() == false}>
           <div class="absolute top-0 min-h-40 flex">

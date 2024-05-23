@@ -112,9 +112,7 @@ export default function Practice(props: PageProps): JSXElement {
       </div>
 
       <Show when={isReady()} fallback="loading">
-        <div class="box">
-          <VideoPlayer src={params.sourceUrl} />
-        </div>
+        <VideoPlayer src={params.sourceUrl} />
 
         <div class="box my-5 relative">
           options:

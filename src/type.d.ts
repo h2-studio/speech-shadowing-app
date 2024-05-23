@@ -23,6 +23,7 @@ interface SubtitleLine {
   end: number;
   duration: number;
   text: string;
+  phonetics: Array<[number, number, string]>;
   html: string;
   record: AudioBuffer;
   isFirstLine: boolean;

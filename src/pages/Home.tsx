@@ -15,7 +15,7 @@ export default function Home(): JSXElement {
         AND REPEAT.
       </p>
       <p class="mt-5 text-2xl">
-        Improve your spoken language with Re:peat. <br />A speech shadowing app
+        Improve your spoken language with re.peat. <br />A speech shadowing app
         by H2 studio.
       </p>
       <p class="mt-5">

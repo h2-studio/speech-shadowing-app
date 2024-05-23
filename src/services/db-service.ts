@@ -10,7 +10,7 @@ interface RepeatDb extends idb.DBSchema {
   };
 }
 
-export class DbService {
+export default class DbService {
   private _db: idb.IDBPDatabase<RepeatDb>;
 
   constructor() {

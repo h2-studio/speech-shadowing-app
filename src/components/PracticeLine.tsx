@@ -25,8 +25,8 @@ export default function PracticeLine(): JSXElement {
 
   return (
     <>
-      <div
-        class="text-center text-lg mt-5"
+      <p
+        class="text-center text-lg mt-5 tracking-widest"
         innerHTML={line().html || line().text}
       />
 

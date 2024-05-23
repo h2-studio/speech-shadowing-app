@@ -1,12 +1,12 @@
-import * as ssp from "simple-subtitle-parser";
 import { createStore, produce, SetStoreFunction } from "solid-js/store";
 
 import { PlaybackEffects } from "@/const";
 import { Navigator } from "@solidjs/router";
 
 import AudioService from "./audio-service";
-import { DbService } from "./db-service";
+import DbService from "./db-service";
 import ResourceService from "./resource-service";
+import SubtitleService from "./subtitle-service";
 
 class AppStoreOptionsImpl implements AppStoreOptions {
   playLineWhileRecording: boolean = false;
@@ -26,6 +26,7 @@ export class AppService {
   private _audioService: AudioService;
   private _resourceService: ResourceService;
   private _dbService: DbService;
+  private _subtitleService: SubtitleService;
 
   public get onDomainDataAvailable() {
     return this._audioService.onDomainDataAvailable;
@@ -63,6 +64,7 @@ export class AppService {
       this._store.options.autoStopRecording;
 
     this._dbService = new DbService();
+    this._subtitleService = new SubtitleService();
   }
 
   private loadOptions(): AppStoreOptions {
@@ -77,54 +79,6 @@ export class AppService {
     }
 
     return options;
-  }
-
-  private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
-    let res = await fetch(url);
-    let text = await res.text();
-    text = text.trim();
-
-    if (text.startsWith("[") && text.endsWith("]")) {
-      // json
-      let lines = JSON.parse(text) as SubtitleLine[];
-      let lastLineIndex = lines.length - 1;
-
-      return lines.map(
-        (line, i) =>
-          ({
-            index: i,
-            start: line.start,
-            end: line.end,
-            duration: line.end - line.start,
-            text: line.text,
-            html: line.html,
-            isFirstLine: i == 0,
-            isLastLine: i == lastLineIndex,
-          } as SubtitleLine)
-      );
-    } else {
-      // srt or vtt
-      // the library only support \n
-      text = text.replaceAll("\r\n", "\n");
-
-      let format = (text.startsWith("WEBVTT") ? "WEBVTT" : "SRT") as ssp.Format;
-
-      let cues = await ssp.parser(format, text);
-      let lastLineIndex = cues.length - 1;
-      return cues.map(
-        (cue) =>
-          ({
-            index: cue.sequence,
-            start: cue.startTime.totals.inSeconds,
-            end: cue.endTime.totals.inSeconds,
-            duration:
-              cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
-            text: cue.text.join(" "),
-            isFirstLine: cue.sequence == 0,
-            isLastLine: cue.sequence == lastLineIndex,
-          } as SubtitleLine)
-      );
-    }
   }
 
   private onMediaTimeUpdate() {
@@ -183,7 +137,7 @@ export class AppService {
   }
 
   public async startPractice(subtitleUrl: string) {
-    let lines = await this.parseSubtitle(subtitleUrl);
+    let lines = await this._subtitleService.parseSubtitle(subtitleUrl);
 
     this._setStore(
       produce((store) => {
