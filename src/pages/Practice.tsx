@@ -6,10 +6,12 @@ import {
   onMount,
   Show,
 } from "solid-js";
+import toast from "solid-toast";
 
 import BackButton from "@/components/BackButton";
-import Button from "@/components/Button";
 import PracticeLine from "@/components/PracticeLine";
+import VideoPlayer from "@/components/VideoPlayer";
+import { ToastErrorOptions } from "@/const";
 import { useService } from "@/service";
 
 export default function Practice(props: PageProps): JSXElement {
@@ -68,12 +70,29 @@ export default function Practice(props: PageProps): JSXElement {
     return false;
   };
 
+  let exportRecord = () => {
+    let tId = toast.loading("exporting");
+    service
+      .exportRecord()
+      .catch((e) => {
+        toast.error("export failed");
+      })
+      .finally(() => {
+        toast.remove(tId);
+      });
+  };
+
   onMount(() => {
     document.addEventListener("keydown", onKeyEvent);
 
-    service.startPractice(params.subtitleUrl).then(() => {
-      setIsReady(true);
-    });
+    service
+      .startPractice(params.subtitleUrl)
+      .then(() => {
+        setIsReady(true);
+      })
+      .catch(() => {
+        toast.error("Unable to load the subtitle file.", ToastErrorOptions);
+      });
   });
 
   onCleanup(() => {
@@ -94,13 +113,7 @@ export default function Practice(props: PageProps): JSXElement {
 
       <Show when={isReady()} fallback="loading">
         <div class="box">
-          {/* TODO: Custom Control */}
-          <video
-            class="w-full max-h-80"
-            ref={(ref) => service.setMediaRef(ref)}
-            src={params.sourceUrl}
-            autoplay={false}
-          />
+          <VideoPlayer src={params.sourceUrl} />
         </div>
 
         <div class="box my-5 relative">
@@ -165,7 +178,7 @@ export default function Practice(props: PageProps): JSXElement {
               type="button"
               class="hover:text-gray-500 disabled:text-gray-400"
               disabled={!service.store.hasRecord}
-              onClick={() => service.exportRecord()}
+              onClick={exportRecord}
             >
               save records
             </button>

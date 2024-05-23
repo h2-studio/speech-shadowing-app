@@ -148,9 +148,8 @@ export default class AudioService {
     this._source?.stop();
   }
 
-  public async export(buffers: AudioBuffer[]): Promise<Blob> {
+  public export(buffers: AudioBuffer[]): Blob {
     // TODO: remove or pad empty audio
-
     let numberOfChannels = buffers[0].numberOfChannels;
     let sampleRate = buffers[0].sampleRate;
 

@@ -1,8 +1,7 @@
 import * as ssp from "simple-subtitle-parser";
 import { createStore, produce, SetStoreFunction } from "solid-js/store";
-import toast from "solid-toast";
 
-import { PlaybackEffects, ToastErrorOptions } from "@/const";
+import { PlaybackEffects } from "@/const";
 import { Navigator } from "@solidjs/router";
 
 import AudioService from "./audio-service";
@@ -83,43 +82,48 @@ export class AppService {
   private async parseSubtitle(url: string): Promise<SubtitleLine[]> {
     let res = await fetch(url);
     let text = await res.text();
+    text = text.trim();
 
-    // the library only support \n
-    text = text.replaceAll("\r\n", "\n");
+    if (text.startsWith("[") && text.endsWith("]")) {
+      // json
+      let lines = JSON.parse(text) as SubtitleLine[];
+      let lastLineIndex = lines.length - 1;
 
-    let format = (text.startsWith("WEBVTT") ? "WEBVTT" : "SRT") as ssp.Format;
-
-    let cues = await ssp.parser(format, text);
-    let lastLineIndex = cues.length - 1;
-    return cues.map(
-      (cue) =>
-        ({
-          index: cue.sequence,
-          start: cue.startTime.totals.inSeconds,
-          end: cue.endTime.totals.inSeconds,
-          duration:
-            cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
-          text: cue.text.join(" "),
-          isFirstLine: cue.sequence == 0,
-          isLastLine: cue.sequence == lastLineIndex,
-        } as SubtitleLine)
-    );
-  }
-
-  private onMediaLoaded() {
-    // update elements
-    this._videoRef.playbackRate = this._store.options.playbackRate;
-    // use the height to detect it is video or audio
-    if (this._videoRef.videoHeight == 0) {
-      // audio
-      this._videoRef.classList.add("max-h-10");
-      this._videoRef.classList.remove("max-h-80");
-      this._videoRef.controls = true;
+      return lines.map(
+        (line, i) =>
+          ({
+            index: i,
+            start: line.start,
+            end: line.end,
+            duration: line.end - line.start,
+            text: line.text,
+            html: line.html,
+            isFirstLine: i == 0,
+            isLastLine: i == lastLineIndex,
+          } as SubtitleLine)
+      );
     } else {
-      // video
-      this._videoRef.classList.add("max-h-80");
-      this._videoRef.classList.remove("max-h-10");
-      this._videoRef.controls = false;
+      // srt or vtt
+      // the library only support \n
+      text = text.replaceAll("\r\n", "\n");
+
+      let format = (text.startsWith("WEBVTT") ? "WEBVTT" : "SRT") as ssp.Format;
+
+      let cues = await ssp.parser(format, text);
+      let lastLineIndex = cues.length - 1;
+      return cues.map(
+        (cue) =>
+          ({
+            index: cue.sequence,
+            start: cue.startTime.totals.inSeconds,
+            end: cue.endTime.totals.inSeconds,
+            duration:
+              cue.endTime.totals.inSeconds - cue.startTime.totals.inSeconds,
+            text: cue.text.join(" "),
+            isFirstLine: cue.sequence == 0,
+            isLastLine: cue.sequence == lastLineIndex,
+          } as SubtitleLine)
+      );
     }
   }
 
@@ -154,10 +158,6 @@ export class AppService {
     }
   }
 
-  private onMediaError() {
-    toast.error("Unable to load the media.", ToastErrorOptions);
-  }
-
   private async interrupt() {
     if (!this._videoRef.paused) {
       this._videoRef.pause();
@@ -176,32 +176,21 @@ export class AppService {
 
   public setMediaRef(mediaRef: HTMLVideoElement) {
     this._videoRef = mediaRef;
-    this._videoRef.disablePictureInPicture = true;
 
-    this._videoRef.addEventListener("loadedmetadata", () => {
-      this.onMediaLoaded();
-    });
     this._videoRef.addEventListener("timeupdate", () => {
       this.onMediaTimeUpdate();
-    });
-    this._videoRef.addEventListener("error", () => {
-      this.onMediaError();
     });
   }
 
   public async startPractice(subtitleUrl: string) {
-    try {
-      let lines = await this.parseSubtitle(subtitleUrl);
+    let lines = await this.parseSubtitle(subtitleUrl);
 
-      this._setStore(
-        produce((store) => {
-          store.subtitleUrl = subtitleUrl;
-          store.lines = lines;
-        })
-      );
-    } catch (error) {
-      toast.error("Unable to load the subtitle file.", ToastErrorOptions);
-    }
+    this._setStore(
+      produce((store) => {
+        store.subtitleUrl = subtitleUrl;
+        store.lines = lines;
+      })
+    );
   }
 
   public async stopPractice() {
@@ -384,23 +373,31 @@ export class AppService {
     this._audioService?.stopRecord();
   }
 
-  public async exportRecord() {
-    let buffers = this._store.lines.map((l) => l.record).filter((r) => r);
-    if (buffers.length == 0) {
-      return;
-    }
+  public exportRecord(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // make it async
+      setTimeout(() => {
+        let buffers = this._store.lines.map((l) => l.record).filter((r) => r);
+        if (buffers.length == 0) {
+          return resolve(null);
+        }
 
-    let tId = toast.loading("exporting");
-    let blob = await this._audioService.export(buffers);
+        try {
+          let blob = this._audioService.export(buffers);
 
-    let ele = document.createElement("a");
-    ele.href = window.URL.createObjectURL(blob);
+          let ele = document.createElement("a");
+          ele.href = window.URL.createObjectURL(blob);
 
-    let date = new Date().toISOString().substring(0, 10);
-    ele.download = `repeat-${date}.mp3`;
-    ele.click();
+          let date = new Date().toISOString().substring(0, 10);
+          ele.download = `repeat-${date}.mp3`;
+          ele.click();
 
-    toast.remove(tId);
+          resolve(null);
+        } catch (error) {
+          reject(error);
+        }
+      }, 0);
+    });
   }
 
   public async loadResourceCategories(): Promise<void> {
