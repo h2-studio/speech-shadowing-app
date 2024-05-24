@@ -112,7 +112,7 @@ export class AppService {
     }
   }
 
-  private async interrupt() {
+  public async stopAll() {
     if (!this._videoRef.paused) {
       this._videoRef.pause();
     }
@@ -121,7 +121,9 @@ export class AppService {
       this._audioService.stopRecord(true);
     }
 
-    this._audioService.stopPlay();
+    if (this._store.isPlayingRecord) {
+      this._audioService.stopPlay();
+    }
   }
 
   public setNavigator(navigator: Navigator) {
@@ -133,6 +135,14 @@ export class AppService {
 
     this._videoRef.addEventListener("timeupdate", () => {
       this.onMediaTimeUpdate();
+    });
+
+    this._videoRef.addEventListener("play", (e) => {
+      this._setStore("isPlaying", true);
+    });
+
+    this._videoRef.addEventListener("pause", (e) => {
+      this._setStore("isPlaying", false);
     });
   }
 
@@ -262,7 +272,7 @@ export class AppService {
   }
 
   public async playLine(line: SubtitleLine, lowVolume: boolean = false) {
-    this.interrupt();
+    this.stopAll();
     this._currentLine = line;
 
     clearTimeout(this._playTimeoutId);
@@ -292,18 +302,21 @@ export class AppService {
   }
 
   public async playLineRecord(line: SubtitleLine) {
-    this.interrupt();
+    this.stopAll();
     this._currentLine = line;
 
     if (!line.record) {
       return;
     }
 
-    this._audioService.play(line.record);
+    this._setStore("isPlayingRecord", true);
+    this._audioService.play(line.record, () => {
+      this._setStore("isPlayingRecord", false);
+    });
   }
 
   public recordLine(line: SubtitleLine) {
-    this.interrupt();
+    this.stopAll();
 
     this._currentLine = line;
 

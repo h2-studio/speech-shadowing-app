@@ -1,8 +1,8 @@
-import { createMemo, createSignal, JSXElement, Show } from "solid-js";
+import { createMemo, createSignal, JSXElement } from "solid-js";
 
 import { useService } from "@/service";
 
-import Button from "./Button";
+import PlayButton from "./PlayButton";
 import RecordButton from "./RecordButton";
 
 export default function PracticeLine(): JSXElement {
@@ -42,30 +42,33 @@ export default function PracticeLine(): JSXElement {
           previous
         </button>
 
-        <button
-          type="button"
+        <PlayButton
+          text="play"
           title="play (Up Arrow, W)"
-          class="w-24 hover:text-gray-500"
+          isPlaying={service.store.isPlaying}
           onClick={() => {
-            service.playLine(line());
+            if (service.store.isPlaying) {
+              service.stopAll();
+            } else {
+              service.playLine(line());
+            }
           }}
-        >
-          <i class="block text-4xl fa-solid fa-circle-play"></i>
-          play
-        </button>
+        />
 
-        <button
-          type="button"
+        <PlayButton
+          text="play record"
           title="play recording (Down Arrow, S)"
-          class="w-24 hover:text-gray-500 disabled:text-gray-300"
-          disabled={line().record == null}
+          playIcon="fa-record-vinyl"
+          isPlaying={service.store.isPlayingRecord}
+          isDisabled={line().record == null}
           onClick={() => {
-            service.playLineRecord(line());
+            if (service.store.isPlayingRecord) {
+              service.stopAll();
+            } else {
+              service.playLineRecord(line());
+            }
           }}
-        >
-          <i class="block text-4xl fa-solid fa-record-vinyl"></i>
-          play record
-        </button>
+        />
 
         <button
           type="button"

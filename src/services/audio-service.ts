@@ -133,12 +133,13 @@ export default class AudioService {
     this._recorder?.stop();
   }
 
-  public play(audioBuffer: AudioBuffer) {
+  public play(audioBuffer: AudioBuffer, onEnded: () => void) {
     this._source = this.context.createBufferSource();
     this._source.buffer = audioBuffer;
     this._source.connect(this.context.destination);
     this._source.onended = () => {
       this._source = null;
+      onEnded();
     };
 
     this._source.start();

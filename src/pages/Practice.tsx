@@ -59,11 +59,19 @@ export default function Practice(props: PageProps): JSXElement {
         break;
       case "KeyW":
       case "ArrowUp":
-        service.playSelectLine();
+        if (service.store.isPlaying) {
+          service.stopAll();
+        } else {
+          service.playSelectLine();
+        }
         break;
       case "ArrowDown":
       case "KeyS":
-        service.playSelectLineRecord();
+        if (service.store.isPlayingRecord) {
+          service.stopAll();
+        } else {
+          service.playSelectLineRecord();
+        }
         break;
     }
 

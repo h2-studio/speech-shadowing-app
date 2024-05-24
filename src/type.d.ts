@@ -6,13 +6,15 @@ interface AppStoreOptions {
 }
 
 interface AppStore {
-  subtitleUrl: string;
-  lines: SubtitleLine[];
-  currentLineIndex: number;
-  options: AppStoreOptions;
-  isRecording: boolean;
-  hasRecord: boolean;
   categories: ResourceCategory[];
+  currentLineIndex: number;
+  hasRecord: boolean;
+  isRecording: boolean;
+  isPlaying: boolean;
+  isPlayingRecord: boolean;
+  lines: SubtitleLine[];
+  options: AppStoreOptions;
+  subtitleUrl: string;
 }
 
 type ResourceType = "audio" | "video";
