@@ -44,6 +44,7 @@ export default function VideoPlayer(props: Props): JSXElement {
           src={props.src}
           autoplay={false}
           controls={false}
+          playsinline
         />
 
         <Show when={loadStatus() == false}>

@@ -179,7 +179,7 @@ export default function Practice(props: PageProps): JSXElement {
               <option value="1.5">1.5</option>
             </select>
           </span>
-          <span class="mx-2 absolute right-0">
+          <span class="mr-2 lg:absolute lg:right-0">
             <button
               type="button"
               class="hover:text-gray-500 disabled:text-gray-400"

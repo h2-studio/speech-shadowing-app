@@ -64,7 +64,16 @@ video::-webkit-media-controls-fullscreen-button {
   @apply box h-[600px];
 }
 
+ruby {
+  ruby-align: space-around;
+}
+
 ruby rt {
   font-family: arial !important;
-  font-size: 80%;
+  font-size: 70%;
+  letter-spacing: normal;
+}
+
+button:focus-visible {
+  outline: none;
 }
