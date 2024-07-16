@@ -17,9 +17,12 @@ export default function VideoPlayer(props: Props): JSXElement {
     videoRef.addEventListener("loadedmetadata", () => {
       videoRef.playbackRate = service.store.options.playbackRate;
 
+      setLoadStatus(true);
+    });
+
+    videoRef.addEventListener("resize", () => {
       // use the height to detect it is video or audio
       setIsAudio(videoRef.videoHeight == 0);
-      setLoadStatus(true);
     });
 
     videoRef.addEventListener("error", () => {
@@ -44,6 +47,7 @@ export default function VideoPlayer(props: Props): JSXElement {
           src={props.src}
           autoplay={false}
           controls={false}
+          preload="auto"
           playsinline
         />
 
